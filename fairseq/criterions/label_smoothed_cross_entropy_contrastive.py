@@ -1,4 +1,3 @@
-from cipher.utils import deduplicate
 import math
 
 from fairseq.criterions import register_criterion
