@@ -372,7 +372,6 @@ class LanguagePairDataset(FairseqDataset):
                    IDs of each sample in the batch
         """
         # adding switcher, switchout_tau and raml_tau args to collate function for SwithOut
-
         res = collate(
             samples,
             pad_idx=self.src_dict.pad(),
