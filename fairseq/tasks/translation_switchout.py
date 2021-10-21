@@ -159,7 +159,7 @@ def load_langpair_dataset(
 
 
 @dataclass
-class TranslationConfig(FairseqDataclass):
+class TranslationSwitchoutConfig(FairseqDataclass):
     data: Optional[str] = field(
         default=None,
         metadata={
@@ -238,8 +238,8 @@ class TranslationConfig(FairseqDataclass):
     )
 
 
-@register_task("translation", dataclass=TranslationConfig)
-class TranslationTask(FairseqTask):
+@register_task("translation_switchout", dataclass=TranslationSwitchoutConfig)
+class TranslationSwitchoutTask(FairseqTask):
     """
     Translate from one (source) language to another (target) language.
 
@@ -253,15 +253,15 @@ class TranslationTask(FairseqTask):
         :mod:`fairseq-generate` and :mod:`fairseq-interactive`.
     """
 
-    cfg: TranslationConfig
+    cfg: TranslationSwitchoutConfig
 
-    def __init__(self, cfg: TranslationConfig, src_dict, tgt_dict):
+    def __init__(self, cfg: TranslationSwitchoutConfig, src_dict, tgt_dict):
         super().__init__(cfg)
         self.src_dict = src_dict
         self.tgt_dict = tgt_dict
 
     @classmethod
-    def setup_task(cls, cfg: TranslationConfig, **kwargs):
+    def setup_task(cls, cfg: TranslationSwitchoutConfig, **kwargs):
         """Setup the task (e.g., load dictionaries).
 
         Args:
