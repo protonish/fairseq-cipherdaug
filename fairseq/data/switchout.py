@@ -12,9 +12,9 @@ class SwitchOut(object):
         self.src_vocab_size = self.src_dict.__len__()
         self.tgt_vocab_size = self.tgt_dict.__len__()
 
-        bos_id = self.dictionary.bos_index
-        eos_id = self.dictionary.eos_index
-        pad_id = self.dictionary.pad_index
+        bos_id = self.src_dict.bos_index
+        eos_id = self.src_dict.eos_index
+        pad_id = self.src_dict.pad_index
 
         self.switch_tau = None
         self.raml_tau = None
