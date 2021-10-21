@@ -139,6 +139,14 @@ def load_langpair_dataset(
             align_dataset = data_utils.load_indexed_dataset(align_path, None, dataset_impl)
 
     tgt_dataset_sizes = tgt_dataset.sizes if tgt_dataset is not None else None
+
+    # apply SwitchOut to train only
+    # the tau hyperparameters act as switches
+    # setting them to None ensures SwitchOut is not applied
+    if split not in ["train", "training"]:
+        switchout_tau = None
+        raml_tau = None
+
     return LanguagePairDataset(
         src_dataset,
         src_dataset.sizes,

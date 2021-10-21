@@ -79,11 +79,7 @@ def collate(
 
     # apply switchout to source here
     if switcher is not None and switchout_tau is not None and switchout_tau > 0.0:
-        src_tokens1 = switcher.switchout(src_tokens, switchout_tau)
-
-    import ipdb
-
-    ipdb.set_trace()
+        src_tokens = switcher.switchout(src_tokens, switchout_tau)
 
     prev_output_tokens = None
     target = None
