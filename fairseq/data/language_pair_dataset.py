@@ -78,7 +78,7 @@ def collate(
     src_tokens = src_tokens.index_select(0, sort_order)
 
     # apply switchout to source here
-    if switcher is not None and switchout_tau is not None:
+    if switcher is not None and switchout_tau is not None and switchout_tau > 0.0:
         src_tokens1 = switcher.switchout(src_tokens, switchout_tau)
 
     import ipdb
@@ -288,7 +288,7 @@ class LanguagePairDataset(FairseqDataset):
         self.pad_to_multiple = pad_to_multiple
 
         # intializing SwitchOut instance
-        self.switchout_tau = 0.1  # switchout_tau
+        self.switchout_tau = switchout_tau
         self.raml_tau = raml_tau
         self.switcher = SwitchOut(src_dict, tgt_dict, switchout_tau, raml_tau)
 
