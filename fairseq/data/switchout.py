@@ -32,7 +32,7 @@ class SwitchOut(object):
         lengths = (1.0 - mask.float()).sum(dim=1)
 
         # sample the number of words to corrupt fr each sentence
-        logits = torch.arrange(n_steps)
+        logits = torch.arange(n_steps)
         logits = logits.float().mul_(-1).unsqueeze(0).expand_as(sents).contiguous().masked_fill_(mask, -float("inf"))
         logits = Variable(logits)  # adding to computation graph node
         probs = torch.nn.functional.softmax(logits.mul_(self.switch_tau), dim=1)
