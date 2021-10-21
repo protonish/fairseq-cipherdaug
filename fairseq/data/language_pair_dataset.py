@@ -9,6 +9,7 @@ import numpy as np
 import torch
 from fairseq.data import FairseqDataset, data_utils
 from fairseq.data.switchout import SwitchOut
+from fairseq.fairseq.data import switchout
 
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,9 @@ def collate(
     input_feeding=True,
     pad_to_length=None,
     pad_to_multiple=1,
+    switcher=None,
+    switchout_tau=None,
+    raml_tau=None,
 ):
     if len(samples) == 0:
         return {}
@@ -74,6 +78,12 @@ def collate(
     src_tokens = src_tokens.index_select(0, sort_order)
 
     # apply switchout to source here
+    import ipdb
+
+    ipdb.set_trace()
+    if switcher is not None and switchout_tau is not None:
+        src_tokens1 = switcher.switchout(src_tokens, switchout_tau)
+
     import ipdb
 
     ipdb.set_trace()
@@ -281,9 +291,9 @@ class LanguagePairDataset(FairseqDataset):
         self.pad_to_multiple = pad_to_multiple
 
         # intializing SwitchOut instance
-        self.switch = SwitchOut(src_dict, tgt_dict)
-        self.switchout_tau = switchout_tau
+        self.switchout_tau = 0.1  # switchout_tau
         self.raml_tau = raml_tau
+        self.switcher = SwitchOut(src_dict, tgt_dict, switchout_tau, raml_tau)
 
     def get_batch_shapes(self):
         return self.buckets
@@ -364,8 +374,7 @@ class LanguagePairDataset(FairseqDataset):
                 - `tgt_lang_id` (LongTensor): a long Tensor which contains target language
                    IDs of each sample in the batch
         """
-        if self.switchout_tau is not None:
-            pass
+        # adding switcher, switchout_tau and raml_tau args to collate function for SwithOut
 
         res = collate(
             samples,
@@ -376,6 +385,9 @@ class LanguagePairDataset(FairseqDataset):
             input_feeding=self.input_feeding,
             pad_to_length=pad_to_length,
             pad_to_multiple=self.pad_to_multiple,
+            switcher=self.switcher,
+            switchout_tau=self.switchout_tau,
+            raml_tau=self.raml_tau,
         )
 
         if self.src_lang_id is not None or self.tgt_lang_id is not None:
