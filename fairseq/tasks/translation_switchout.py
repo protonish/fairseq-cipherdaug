@@ -322,6 +322,8 @@ class TranslationSwitchoutTask(FairseqTask):
             num_buckets=self.cfg.num_batch_buckets,
             shuffle=(split != "test"),
             pad_to_multiple=self.cfg.required_seq_len_multiple,
+            switchout_tau=self.cfg.switchout_tau,
+            raml_tau=self.cfg.raml_tau,
         )
 
     def build_dataset_for_inference(self, src_tokens, src_lengths, constraints=None):
