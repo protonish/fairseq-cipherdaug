@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from fairseq.data import FairseqDataset, data_utils
 from fairseq.data.switchout import SwitchOut
-from fairseq.fairseq.data import switchout
+from fairseq.data import switchout
 
 
 logger = logging.getLogger(__name__)

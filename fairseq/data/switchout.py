@@ -21,7 +21,7 @@ class SwitchOut(object):
         self.switch_tau = switch_tau
         self.raml_tau = raml_tau
 
-    def switchout(self, sents, tau=0):
+    def switchout(self, sents, tau=0.1):
         bsz, n_steps = sents.size()
 
         # we don't want the tau to be dynamic
