@@ -42,9 +42,12 @@ class SwitchOut(object):
         corrupt_pos = (
             num_words.data.float().div_(lengths).unsqueeze(1).expand_as(sents).contiguous().masked_fill_(mask, 0)
         )
-        import ipdb
+        # import ipdb
 
-        ipdb.set_trace()
+        # ipdb.set_trace()
+        from fairseq import pdb
+
+        pdb.set_trace()
         corrupt_pos = torch.bernoulli(corrupt_pos, out=corrupt_pos).bool()
         total_words = int(corrupt_pos.sum())
 
