@@ -8,6 +8,7 @@ import logging
 import numpy as np
 import torch
 from fairseq.data import FairseqDataset, data_utils
+from fairseq.data.switchout import SwitchOut
 
 
 logger = logging.getLogger(__name__)
@@ -65,11 +66,17 @@ def collate(
         left_pad=left_pad_source,
         pad_to_length=pad_to_length["source"] if pad_to_length is not None else None,
     )
+
     # sort by descending source length
     src_lengths = torch.LongTensor([s["source"].ne(pad_idx).long().sum() for s in samples])
     src_lengths, sort_order = src_lengths.sort(descending=True)
     id = id.index_select(0, sort_order)
     src_tokens = src_tokens.index_select(0, sort_order)
+
+    # apply switchout to source here
+    import ipdb
+
+    ipdb.set_trace()
 
     prev_output_tokens = None
     target = None
@@ -211,6 +218,8 @@ class LanguagePairDataset(FairseqDataset):
         src_lang_id=None,
         tgt_lang_id=None,
         pad_to_multiple=1,
+        switchout_tau=None,
+        raml_tau=None,
     ):
         if tgt_dict is not None:
             assert src_dict.pad() == tgt_dict.pad()
@@ -270,6 +279,11 @@ class LanguagePairDataset(FairseqDataset):
         else:
             self.buckets = None
         self.pad_to_multiple = pad_to_multiple
+
+        # intializing SwitchOut instance
+        self.switch = SwitchOut(src_dict, tgt_dict)
+        self.switchout_tau = switchout_tau
+        self.raml_tau = raml_tau
 
     def get_batch_shapes(self):
         return self.buckets
@@ -350,6 +364,9 @@ class LanguagePairDataset(FairseqDataset):
                 - `tgt_lang_id` (LongTensor): a long Tensor which contains target language
                    IDs of each sample in the batch
         """
+        if self.switchout_tau is not None:
+            pass
+
         res = collate(
             samples,
             pad_idx=self.src_dict.pad(),
@@ -360,10 +377,6 @@ class LanguagePairDataset(FairseqDataset):
             pad_to_length=pad_to_length,
             pad_to_multiple=self.pad_to_multiple,
         )
-
-        import ipdb
-
-        ipdb.set_trace()
 
         if self.src_lang_id is not None or self.tgt_lang_id is not None:
             src_tokens = res["net_input"]["src_tokens"]
