@@ -94,6 +94,10 @@ def collate(
             pad_to_length=pad_to_length["target"] if pad_to_length is not None else None,
         )
         target = target.index_select(0, sort_order)
+        # apply switchout to target here
+        # if switcher is not None and raml_tau is not None and raml_tau > 0.0:
+        #     pass
+
         tgt_lengths = torch.LongTensor([s["target"].ne(pad_idx).long().sum() for s in samples]).index_select(
             0, sort_order
         )
@@ -110,6 +114,11 @@ def collate(
                 move_eos_to_beginning=True,
                 pad_to_length=pad_to_length["target"] if pad_to_length is not None else None,
             )
+
+        import ipdb
+
+        ipdb.set_trace()
+
     else:
         ntokens = src_lengths.sum().item()
 
@@ -124,7 +133,8 @@ def collate(
         "target": target,
     }
     if prev_output_tokens is not None:
-        batch["net_input"]["prev_output_tokens"] = prev_output_tokens.index_select(0, sort_order)
+        prev_output_tokens = prev_output_tokens.index_select(0, sort_order)
+        batch["net_input"]["prev_output_tokens"] = prev_output_tokens
 
     if samples[0].get("alignment", None) is not None:
         bsz, tgt_sz = batch["target"].shape
