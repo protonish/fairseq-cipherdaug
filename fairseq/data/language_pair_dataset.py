@@ -78,6 +78,10 @@ def collate(
     id = id.index_select(0, sort_order)
     src_tokens = src_tokens.index_select(0, sort_order)
 
+    import ipdb
+
+    ipdb.set_trace()
+
     # apply switchout to source here
     if switcher is not None and switchout_tau is not None and switchout_tau > 0.0:
         if word_dropout:
