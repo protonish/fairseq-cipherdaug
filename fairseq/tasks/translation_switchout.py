@@ -344,6 +344,7 @@ class TranslationSwitchoutTask(FairseqTask):
             pad_to_multiple=self.cfg.required_seq_len_multiple,
             switchout_tau=self.cfg.switchout_tau,
             raml_tau=self.cfg.raml_tau,
+            word_dropout=self.cfg.word_dropout,
         )
 
     def build_dataset_for_inference(self, src_tokens, src_lengths, constraints=None):
