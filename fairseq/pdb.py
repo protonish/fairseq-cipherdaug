@@ -12,36 +12,53 @@ import sys
 __all__ = ["set_trace"]
 
 
-_stdin = [None]
-_stdin_lock = multiprocessing.Lock()
-try:
-    _stdin_fd = sys.stdin.fileno()
-except Exception:
-    _stdin_fd = None
+# _stdin = [None]
+# _stdin_lock = multiprocessing.Lock()
+# try:
+#     _stdin_fd = sys.stdin.fileno()
+# except Exception:
+#     _stdin_fd = None
 
 
-class MultiprocessingPdb(pdb.Pdb):
-    """A Pdb wrapper that works in a multiprocessing environment.
+# class MultiprocessingPdb(pdb.Pdb):
+#     """A Pdb wrapper that works in a multiprocessing environment.
 
-    Usage: `from fairseq import pdb; pdb.set_trace()`
-    """
+#     Usage: `from fairseq import pdb; pdb.set_trace()`
+#     """
 
-    def __init__(self):
-        pdb.Pdb.__init__(self, nosigint=True)
+#     def __init__(self):
+#         pdb.Pdb.__init__(self, nosigint=True)
 
-    def _cmdloop(self):
-        stdin_bak = sys.stdin
-        with _stdin_lock:
-            try:
-                if _stdin_fd is not None:
-                    if not _stdin[0]:
-                        _stdin[0] = os.fdopen(0)  # _stdin_fd
-                    sys.stdin = _stdin[0]
-                self.cmdloop()
-            finally:
-                sys.stdin = stdin_bak
+#     def _cmdloop(self):
+#         stdin_bak = sys.stdin
+#         with _stdin_lock:
+#             try:
+#                 if _stdin_fd is not None:
+#                     if not _stdin[0]:
+#                         _stdin[0] = os.fdopen(0)  # _stdin_fd
+#                     sys.stdin = _stdin[0]
+#                 self.cmdloop()
+#             finally:
+#                 sys.stdin = stdin_bak
+
+
+# def set_trace():
+#     pdb = MultiprocessingPdb()
+#     pdb.set_trace(sys._getframe().f_back)
 
 
 def set_trace():
-    pdb = MultiprocessingPdb()
-    pdb.set_trace(sys._getframe().f_back)
+    frame = sys._getframe().f_back  # pop the current stackframe off
+    pdb.set_trace(frame=frame, Pdb=ForkablePdb)
+
+
+class ForkablePdb(pdb.Pdb):
+    """Pdb that works from a multiprocessing child"""
+
+    def interaction(self, *args, **kwargs):
+        original_stdin = sys.stdin
+        try:
+            sys.stdin = os.fdopen(0)  # 0 should be stdin's file descriptor
+            pdb.Pdb.interaction(self, *args, **kwargs)
+        finally:
+            sys.stdin = original_stdin
