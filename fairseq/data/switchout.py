@@ -184,17 +184,11 @@ class SwitchOut(object):
 
         corrupts = torch.zeros(bsz, n_steps).long()
 
-        # corrupts = torch.zeros(bsz, n_steps).long()
         t_corrupts = corrupts.masked_scatter(common_corrupt_pos[:, 1:].contiguous(), corrupt_val)
-        # corrupts = torch.zeros(bsz, n_steps).long()
         shift_t_corrupts = corrupts.masked_scatter(common_corrupt_pos[:, :-1].contiguous(), corrupt_val)
 
         tgt_sampled_sents = tgt_sents.add(Variable(t_corrupts)).remainder_(self.tgt_vocab_size)
         shift_tgt_sampled_sents = shift_tgt_sents.add(Variable(shift_t_corrupts)).remainder_(self.tgt_vocab_size)
-
-        import ipdb
-
-        ipdb.set_trace()
 
         return tgt_sampled_sents, shift_tgt_sampled_sents
 

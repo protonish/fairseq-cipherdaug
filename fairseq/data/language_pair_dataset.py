@@ -114,14 +114,13 @@ def collate(
                 move_eos_to_beginning=True,
                 pad_to_length=pad_to_length["target"] if pad_to_length is not None else None,
             )
-            prev_output_tokens = prev_output_tokens.index_select(0, sort_order)
-
-        # import ipdb
-
-        # ipdb.set_trace()
+            # prev_output_tokens = prev_output_tokens.index_select(0, sort_order)
 
     else:
         ntokens = src_lengths.sum().item()
+
+    if prev_output_tokens is not None:
+        prev_output_tokens = prev_output_tokens.index_select(0, sort_order)
 
     # apply switchout to target and prev_output_tokens together here
     if switcher is not None and raml_tau is not None and raml_tau > 0.0:
