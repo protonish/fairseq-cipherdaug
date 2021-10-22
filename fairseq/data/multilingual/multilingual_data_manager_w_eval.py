@@ -77,6 +77,10 @@ class MultilingualDatasetManagerWithEval(object):
         self._has_sharded_data = False
         self._num_shards_dict = {}
         self._training_data_sizes = defaultdict(lambda: {})
+        # switchout args
+        self.switchout_tau = args.switchout_tau
+        self.raml_tau = args.raml_tau
+        self.word_dropout = args.word_dropout
 
     @classmethod
     def setup_data_manager(cls, args, lang_pairs, langs, dicts, sampling_method):
@@ -608,7 +612,7 @@ class MultilingualDatasetManagerWithEval(object):
                 f"Reusing source and target datasets of [{split}] {tgt}-{src} for reversed direction: "
                 f"[{split}] {src}-{tgt}: src length={len(src_dataset)}; tgt length={len(tgt_dataset)}"
             )
-
+        print("----------------------> HERE ----------------------")
         return LanguagePairDataset(
             src_dataset,
             src_dataset.sizes,
