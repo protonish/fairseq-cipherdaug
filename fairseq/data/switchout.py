@@ -163,6 +163,9 @@ class SwitchOut(object):
         shift_t_corrupt_pos = corrupt_pos.masked_fill(shift_t_mask, 0)  # don't use masked_fill_ it fills self tensor
         shift_t_corrupt_pos = torch.bernoulli(shift_t_corrupt_pos, out=shift_t_corrupt_pos).bool()
 
+        import ipdb
+
+        ipdb.set_trace()
         # ensure there are same number of corrupt positions
         assert (
             t_corrupt_pos.sum() == shift_t_corrupt_pos.sum()

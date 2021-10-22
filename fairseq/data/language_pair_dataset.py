@@ -116,9 +116,9 @@ def collate(
             )
             prev_output_tokens = prev_output_tokens.index_select(0, sort_order)
 
-        import ipdb
+        # import ipdb
 
-        ipdb.set_trace()
+        # ipdb.set_trace()
 
     else:
         ntokens = src_lengths.sum().item()
