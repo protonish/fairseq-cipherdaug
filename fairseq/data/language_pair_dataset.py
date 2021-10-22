@@ -27,6 +27,7 @@ def collate(
     switcher=None,
     switchout_tau=None,
     raml_tau=None,
+    word_dropout=False,
 ):
     if len(samples) == 0:
         return {}
@@ -79,7 +80,10 @@ def collate(
 
     # apply switchout to source here
     if switcher is not None and switchout_tau is not None and switchout_tau > 0.0:
-        src_tokens = switcher.switchout(src_tokens, switchout_tau)
+        if word_dropout:
+            src_tokens = switcher.word_dropout(src_tokens, switchout_tau)
+        else:
+            src_tokens = switcher.switchout(src_tokens, switchout_tau)
 
     prev_output_tokens = None
     target = None
@@ -223,6 +227,7 @@ class LanguagePairDataset(FairseqDataset):
         pad_to_multiple=1,
         switchout_tau=None,
         raml_tau=None,
+        word_dropout=False,
     ):
         if tgt_dict is not None:
             assert src_dict.pad() == tgt_dict.pad()
@@ -286,6 +291,7 @@ class LanguagePairDataset(FairseqDataset):
         # intializing SwitchOut instance
         self.switchout_tau = switchout_tau
         self.raml_tau = raml_tau
+        self.word_dropout = word_dropout
         self.switcher = SwitchOut(src_dict, tgt_dict, switchout_tau, raml_tau)
 
     def get_batch_shapes(self):
@@ -380,6 +386,7 @@ class LanguagePairDataset(FairseqDataset):
             switcher=self.switcher,
             switchout_tau=self.switchout_tau,
             raml_tau=self.raml_tau,
+            word_dropout=self.word_dropout,
         )
 
         if self.src_lang_id is not None or self.tgt_lang_id is not None:

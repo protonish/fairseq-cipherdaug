@@ -60,6 +60,7 @@ def load_langpair_dataset(
     prepend_bos_src=None,
     switchout_tau=None,
     raml_tau=None,
+    word_dropout=False,
 ):
     def split_exists(split, src, tgt, lang, data_path):
         filename = os.path.join(data_path, "{}.{}-{}.{}".format(split, src, tgt, lang))
@@ -146,6 +147,7 @@ def load_langpair_dataset(
     if split not in ["train", "training"]:
         switchout_tau = None
         raml_tau = None
+        word_dropout = False
 
     return LanguagePairDataset(
         src_dataset,
@@ -163,6 +165,7 @@ def load_langpair_dataset(
         pad_to_multiple=pad_to_multiple,
         switchout_tau=switchout_tau,
         raml_tau=raml_tau,
+        word_dropout=word_dropout,
     )
 
 
@@ -244,6 +247,9 @@ class TranslationSwitchoutConfig(FairseqDataclass):
     raml_tau: Optional[float] = field(
         default=None, metadata={"help": "this value bot enables SwitchOut [RAML] (tgt) and sets the tau value."}
     )
+    word_dropout: bool = field(
+        default=False, metadata={"help": "this turns on WordDropout; requires --switchout-tau value to non-zero."}
+    )
 
 
 @register_task("translation_switchout", dataclass=TranslationSwitchoutConfig)
@@ -310,6 +316,12 @@ class TranslationSwitchoutTask(FairseqTask):
 
         # infer langcode
         src, tgt = self.cfg.source_lang, self.cfg.target_lang
+
+        # sanity check for word-dropout
+        if self.cfg.word_dropout:
+            assert (
+                self.cfg.switchout_tau is not None
+            ), "Must supply --switchout-tau value when applying WordDropout; Recall WD is a special case of switchout"
 
         self.datasets[split] = load_langpair_dataset(
             data_path,
