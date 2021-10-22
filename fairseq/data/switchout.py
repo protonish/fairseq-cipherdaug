@@ -158,8 +158,8 @@ class SwitchOut(object):
         # corrupt_val = corrupt_val.random_(2, self.src_vocab_size)
         corrupts = torch.zeros(bsz, n_steps).long()
         corrupts = corrupts.masked_scatter_(corrupt_pos, corrupt_val)
-        # sampled_sents = sents.add(Variable(corrupts)).remainder_(self.src_vocab_size)
-        sampled_sents = torch.empty_like(sents).copy_(sents)
-        sampled_sents[corrupts == -1] = self.unk_id
+        sents[corrupts == -1] = self.unk_id
+        # sampled_sents = torch.empty_like(sents).copy_(sents)
+        sampled_sents = sents
 
         return sampled_sents
