@@ -318,13 +318,10 @@ class TranslationSwitchoutTask(FairseqTask):
         src, tgt = self.cfg.source_lang, self.cfg.target_lang
 
         # sanity check for word-dropout
-        print("WORD DROP: {}".format(self.cfg.word_dropout))
         if self.cfg.word_dropout:
             assert (
                 self.cfg.switchout_tau is not None
             ), "Must supply --switchout-tau value when applying WordDropout; Recall WD is a special case of switchout"
-
-        print("WORD DROP: {}".format(self.cfg.word_dropout))
 
         self.datasets[split] = load_langpair_dataset(
             data_path,
