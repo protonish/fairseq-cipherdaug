@@ -7,6 +7,7 @@ from fairseq.data import data_utils
 
 logger = logging.getLogger(__name__)
 
+
 class SwitchOut(object):
     def __init__(self, src_dict, tgt_dict, switch_tau, raml_tau) -> None:
         super().__init__()
@@ -45,13 +46,15 @@ class SwitchOut(object):
         # TODO: investigate this further
         if torch.any(num_words > lengths):
             logger.info("SwithOut: num_words > lengths. Clamping tensor to a ceil of lengths.")
-            num_words[num_words>lengths].float() = lengths[num_words>lengths].float()
+            num_words = num_words.float()
+            lengths = lengths.float()
+            num_words[num_words > lengths] = lengths[num_words > lengths]
 
         # sample the corrupted positions
         corrupt_pos = (
             num_words.data.float().div_(lengths).unsqueeze(1).expand_as(sents).contiguous().masked_fill_(mask, 0)
         )
-        
+
         corrupt_pos = torch.bernoulli(corrupt_pos, out=corrupt_pos).bool()
         total_words = int(corrupt_pos.sum())
 
