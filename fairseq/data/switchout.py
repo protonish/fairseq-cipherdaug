@@ -1,9 +1,11 @@
+import logging
 import numpy as np
 import torch
 from torch.autograd import Variable
 
 from fairseq.data import data_utils
 
+logger = logging.getLogger(__name__)
 
 class SwitchOut(object):
     def __init__(self, src_dict, tgt_dict, switch_tau, raml_tau) -> None:
@@ -37,17 +39,19 @@ class SwitchOut(object):
         logits = Variable(logits)  # adding to computation graph node
         probs = torch.nn.functional.softmax(logits.mul_(self.switch_tau), dim=1)
         num_words = torch.distributions.Categorical(probs).sample()
+        # sometimes num_words > lengths; this is an unresolved bug;
+        # reproducible with max_tokens = 8000 on transformer base for iwslt de-en
+        # temp fix is to clamp everything within length
+        # TODO: investigate this further
+        if torch.any(num_words > lengths):
+            logger.info("SwithOut: num_words > lengths. Clamping tensor to a ceil of lengths.")
+            num_words[num_words>lengths].float() = lengths[num_words>lengths].float()
 
         # sample the corrupted positions
         corrupt_pos = (
             num_words.data.float().div_(lengths).unsqueeze(1).expand_as(sents).contiguous().masked_fill_(mask, 0)
         )
-        # import ipdb
-
-        # ipdb.set_trace()
-        from fairseq import pdb
-
-        pdb.set_trace()
+        
         corrupt_pos = torch.bernoulli(corrupt_pos, out=corrupt_pos).bool()
         total_words = int(corrupt_pos.sum())
 
