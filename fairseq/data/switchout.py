@@ -157,11 +157,9 @@ class SwitchOut(object):
 
         # sample the corrupted positions for tgt_sents
         t_corrupt_pos = corrupt_pos.masked_fill(t_mask, 0)  # don't use masked_fill_ it fills self tensor
-        # t_corrupt_pos = torch.bernoulli(t_corrupt_pos, out=t_corrupt_pos).bool()
 
         # sample the corrupted positions for shift_tgt_sents
         shift_t_corrupt_pos = corrupt_pos.masked_fill(shift_t_mask, 0)  # don't use masked_fill_ it fills self tensor
-        # shift_t_corrupt_pos = torch.bernoulli(shift_t_corrupt_pos, out=shift_t_corrupt_pos).bool()
 
         # make the 2 brothers similar;
         # add a zero column before tgt_corrupt_pos
@@ -176,32 +174,27 @@ class SwitchOut(object):
         # drawing from bernoulli distribution for both tgt and shift_tgt
         common_corrupt_pos = torch.bernoulli(t_corrupt_pos).bool()
 
-        # ensure there are same number of corrupt positions
-        # assert (
-        #     t_corrupt_pos.sum() == shift_t_corrupt_pos.sum()
-        # ), "RAML: tgt and shift_tgt have different number of corrupt_pos"
-
         total_words = int(common_corrupt_pos.sum())
 
         # sample the corrupted values to add to sents
         corrupt_val = torch.LongTensor(total_words)
-        # starts from 2 because pad_idx = 1, eos_idx = 2 in fairseq dict
+        # starts from 3 because pad_idx = 1, eos_idx = 2 in fairseq dict
         # we don't want to replace tokens with bos/eos/pad token
         corrupt_val = corrupt_val.random_(3, self.tgt_vocab_size)
 
         corrupts = torch.zeros(bsz, n_steps).long()
 
-        import ipdb
-
-        ipdb.set_trace()
-
-        corrupts = torch.zeros(bsz, n_steps).long()
-        t_corrupts = corrupts.masked_scatter_(t_corrupt_pos, corrupt_val)
-        corrupts = torch.zeros(bsz, n_steps).long()
-        shift_t_corrupts = corrupts.masked_scatter_(shift_t_corrupt_pos, corrupt_val)
+        # corrupts = torch.zeros(bsz, n_steps).long()
+        t_corrupts = corrupts.masked_scatter(common_corrupt_pos[:, 1:].contiguous(), corrupt_val)
+        # corrupts = torch.zeros(bsz, n_steps).long()
+        shift_t_corrupts = corrupts.masked_scatter(common_corrupt_pos[:, :-1].contiguous(), corrupt_val)
 
         tgt_sampled_sents = tgt_sents.add(Variable(t_corrupts)).remainder_(self.tgt_vocab_size)
         shift_tgt_sampled_sents = shift_tgt_sents.add(Variable(shift_t_corrupts)).remainder_(self.tgt_vocab_size)
+
+        import ipdb
+
+        ipdb.set_trace()
 
         return tgt_sampled_sents, shift_tgt_sampled_sents
 
