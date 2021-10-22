@@ -157,15 +157,29 @@ class SwitchOut(object):
 
         # sample the corrupted positions for tgt_sents
         t_corrupt_pos = corrupt_pos.masked_fill(t_mask, 0)  # don't use masked_fill_ it fills self tensor
-        t_corrupt_pos = torch.bernoulli(t_corrupt_pos, out=t_corrupt_pos).bool()
+        # t_corrupt_pos = torch.bernoulli(t_corrupt_pos, out=t_corrupt_pos).bool()
 
         # sample the corrupted positions for shift_tgt_sents
         shift_t_corrupt_pos = corrupt_pos.masked_fill(shift_t_mask, 0)  # don't use masked_fill_ it fills self tensor
-        shift_t_corrupt_pos = torch.bernoulli(shift_t_corrupt_pos, out=shift_t_corrupt_pos).bool()
+        # shift_t_corrupt_pos = torch.bernoulli(shift_t_corrupt_pos, out=shift_t_corrupt_pos).bool()
+
+        # make the 2 brothers similar;
+        # add a zero column before tgt_corrupt_pos
+        # add a zero column after shift_tgt_corrupt_pos
+        # this will make the 2 tensors equal
+        t_corrupt_pos = torch.cat((torch.zeros(bsz, 1), t_corrupt_pos), 1)
+        shift_t_corrupt_pos = torch.cat((shift_t_corrupt_pos, torch.zeros(bsz, 1)), 1)
+        assert torch.all(
+            t_corrupt_pos == shift_t_corrupt_pos
+        ), "This hack doesn't work. tgt and shift_tgt corrupt_pos are not equal"
+
+        # drawing from bernoulli distribution for both tgt and shift_tgt
+        common_corrupt_pos = torch.bernoulli(t_corrupt_pos).bool()
 
         import ipdb
 
         ipdb.set_trace()
+
         # ensure there are same number of corrupt positions
         assert (
             t_corrupt_pos.sum() == shift_t_corrupt_pos.sum()
@@ -177,7 +191,7 @@ class SwitchOut(object):
         corrupt_val = torch.LongTensor(total_words)
         # starts from 2 because pad_idx = 1, eos_idx = 2 in fairseq dict
         # we don't want to replace tokens with bos/eos/pad token
-        corrupt_val = corrupt_val.random_(2, self.tgt_vocab_size)
+        corrupt_val = corrupt_val.random_(3, self.tgt_vocab_size)
 
         corrupts = torch.zeros(bsz, n_steps).long()
         t_corrupts = corrupts.masked_scatter_(t_corrupt_pos, corrupt_val)
