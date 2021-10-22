@@ -63,7 +63,7 @@ class SwitchOut(object):
         corrupt_val = torch.LongTensor(total_words)
         # starts from 2 because pad_idx = 1, eos_idx = 2 in fairseq dict
         # we don't want to replace tokens with bos/eos/pad token
-        corrupt_val = corrupt_val.random_(2, self.src_vocab_size)
+        corrupt_val = corrupt_val.random_(3, self.src_vocab_size)
         corrupts = torch.zeros(bsz, n_steps).long()
         corrupts = corrupts.masked_scatter_(corrupt_pos, corrupt_val)
         sampled_sents = sents.add(Variable(corrupts)).remainder_(self.src_vocab_size)
@@ -108,7 +108,7 @@ class SwitchOut(object):
         corrupt_val = torch.LongTensor(total_words)
         # starts from 2 because pad_idx = 1, eos_idx = 2 in fairseq dict
         # we don't want to replace tokens with bos/eos/pad token
-        corrupt_val = corrupt_val.random_(2, self.tgt_vocab_size)
+        corrupt_val = corrupt_val.random_(3, self.tgt_vocab_size)
         corrupts = torch.zeros(bsz, n_steps).long()
         corrupts = corrupts.masked_scatter_(corrupt_pos, corrupt_val)
         sampled_sents = sents.add(Variable(corrupts)).remainder_(self.tgt_vocab_size)
@@ -176,22 +176,24 @@ class SwitchOut(object):
         # drawing from bernoulli distribution for both tgt and shift_tgt
         common_corrupt_pos = torch.bernoulli(t_corrupt_pos).bool()
 
-        import ipdb
-
-        ipdb.set_trace()
-
         # ensure there are same number of corrupt positions
-        assert (
-            t_corrupt_pos.sum() == shift_t_corrupt_pos.sum()
-        ), "RAML: tgt and shift_tgt have different number of corrupt_pos"
+        # assert (
+        #     t_corrupt_pos.sum() == shift_t_corrupt_pos.sum()
+        # ), "RAML: tgt and shift_tgt have different number of corrupt_pos"
 
-        total_words = int(t_corrupt_pos.sum())
+        total_words = int(common_corrupt_pos.sum())
 
         # sample the corrupted values to add to sents
         corrupt_val = torch.LongTensor(total_words)
         # starts from 2 because pad_idx = 1, eos_idx = 2 in fairseq dict
         # we don't want to replace tokens with bos/eos/pad token
         corrupt_val = corrupt_val.random_(3, self.tgt_vocab_size)
+
+        corrupts = torch.zeros(bsz, n_steps).long()
+
+        import ipdb
+
+        ipdb.set_trace()
 
         corrupts = torch.zeros(bsz, n_steps).long()
         t_corrupts = corrupts.masked_scatter_(t_corrupt_pos, corrupt_val)
