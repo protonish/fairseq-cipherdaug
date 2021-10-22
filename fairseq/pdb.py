@@ -48,8 +48,9 @@ __all__ = ["set_trace"]
 
 
 def set_trace():
+    pdb = ForkablePdb()
     frame = sys._getframe().f_back  # pop the current stackframe off
-    pdb.set_trace(frame, Pdb=ForkablePdb)
+    pdb.set_trace(frame)
 
 
 class ForkablePdb(pdb.Pdb):
