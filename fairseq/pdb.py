@@ -35,7 +35,7 @@ class MultiprocessingPdb(pdb.Pdb):
             try:
                 if _stdin_fd is not None:
                     if not _stdin[0]:
-                        _stdin[0] = os.fdopen(_stdin_fd)
+                        _stdin[0] = os.fdopen(0)  # _stdin_fd
                     sys.stdin = _stdin[0]
                 self.cmdloop()
             finally:
