@@ -307,7 +307,7 @@ class LanguagePairDataset(FairseqDataset):
                 logger.info("Applying WordDropout with tau = {}".format(switchout_tau))
             else:
                 logger.info("Applying SwitchOut with tau = {}".format(switchout_tau))
-        elif raml_tau:
+        if raml_tau:
             logger.info("Applying RAML with tau = {}".format(raml_tau))
 
     def get_batch_shapes(self):
