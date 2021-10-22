@@ -81,6 +81,7 @@ def collate(
     # apply switchout to source here
     if switcher is not None and switchout_tau is not None and switchout_tau > 0.0:
         if word_dropout:
+
             src_tokens = switcher.word_dropout(src_tokens, switchout_tau)
         else:
             src_tokens = switcher.switchout(src_tokens, switchout_tau)
@@ -293,6 +294,13 @@ class LanguagePairDataset(FairseqDataset):
         self.raml_tau = raml_tau
         self.word_dropout = word_dropout
         self.switcher = SwitchOut(src_dict, tgt_dict, switchout_tau, raml_tau)
+        if switchout_tau:
+            if word_dropout:
+                logger.info("Applying WordDropout with tau = {}".format(switchout_tau))
+            else:
+                logger.info("Applying SwitchOut with tau = {}".format(switchout_tau))
+        elif raml_tau:
+            logger.info("Applying RAML with tau = {}".format(raml_tau))
 
     def get_batch_shapes(self):
         return self.buckets
