@@ -28,6 +28,10 @@ class SwitchOut(object):
     def switchout(self, sents, tau=0.1):
         bsz, n_steps = sents.size()
 
+        import ipdb
+
+        ipdb.set_trace()
+
         # we don't want the tau to be dynamic
         if self.switch_tau is None:
             self.switch_tau = tau

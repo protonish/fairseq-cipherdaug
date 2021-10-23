@@ -78,9 +78,9 @@ class MultilingualDatasetManagerWithEval(object):
         self._num_shards_dict = {}
         self._training_data_sizes = defaultdict(lambda: {})
         # switchout args
-        # self.switchout_tau = args.switchout_tau
-        # self.raml_tau = args.raml_tau
-        # self.word_dropout = args.word_dropout
+        self.switchout_tau = args.switchout_tau
+        self.raml_tau = args.raml_tau
+        self.word_dropout = args.word_dropout
 
     @classmethod
     def setup_data_manager(cls, args, lang_pairs, langs, dicts, sampling_method):

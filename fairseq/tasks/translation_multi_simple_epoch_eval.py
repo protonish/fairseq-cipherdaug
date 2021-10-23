@@ -107,6 +107,14 @@ class TranslationMultiSimpleEpochEvalTask(LegacyFairseqTask):
         parser.add_argument('--eval-bleu-print-samples', action='store_true',
                             help='print sample generations during validation')
 
+        # options for switchout family
+        parser.add_argument('--switchout-tau', type=float, metavar='HELP', default=None,
+                            help='this value both enables SwitchOut (src) and sets the tau value.')
+        parser.add_argument('--raml-tau', type=float, metavar='HELP', default=None,
+                            help='this value bot enables SwitchOut [RAML] (tgt) and sets the tau value.')
+        parser.add_argument('--word-droput', action='store_true', default=False,
+                            help='this turns on WordDropout; requires --switchout-tau value to non-zero.')
+
         SamplingMethod.add_arguments(parser)
         MultilingualDatasetManagerWithEval.add_args(parser)
         # fmt: on
