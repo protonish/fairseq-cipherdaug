@@ -625,6 +625,9 @@ class MultilingualDatasetManagerWithEval(object):
             align_dataset=align_dataset,
             src_lang_id=src_lang_id,
             tgt_lang_id=tgt_lang_id,
+            switchout_tau=self.switchout_tau,
+            raml_tau=self.raml_tau,
+            word_dropout=self.word_dropout,
         )
 
     def src_dataset_tranform_func(self, src_lang, tgt_lang, dataset, spec=None):
