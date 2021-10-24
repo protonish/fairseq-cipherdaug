@@ -34,20 +34,39 @@ class SwitchOut(object):
         # for multilingual only
         self.langs = langs
         self.lang_tok_style = lang_tok_style
+        if self.langs and self.lang_tok_style:
+            self.lang_tok_ids = self.get_available_lang_ids()
+
+    def get_available_lang_ids(self):
+        lang_toks, lang_ids = [], []
+        for lang in self.langs:
+            lang_toks.append(get_lang_tok(lang, lang_tok_style=self.lang_tok_style))
+
+        for lang_tok in lang_toks:
+            if self.src_dict.__contains__(lang_tok):
+                lang_ids.append(self.src_dict.index(lang_tok))
+
+        return lang_ids
 
     def switchout(self, sents, tau=0.1):
         bsz, n_steps = sents.size()
-
-        import ipdb
-
-        ipdb.set_trace()
 
         # we don't want the tau to be dynamic
         if self.switch_tau is None:
             self.switch_tau = tau
         # compute mask for sents without  bos/eos/pad
         mask = torch.eq(sents, self.bos_id) | torch.eq(sents, self.eos_id) | torch.eq(sents, self.pad_id)
+
+        # for multilingual only
+        if self.lang_tok_ids:
+            for lang_tok_id in self.lang_tok_ids:
+                mask = mask | torch.eq(sents, lang_tok_id)
+
         lengths = (1.0 - mask.float()).sum(dim=1)
+
+        import ipdb
+
+        ipdb.set_trace()
 
         # sample the number of words to corrupt fr each sentence
         logits = torch.arange(n_steps)
