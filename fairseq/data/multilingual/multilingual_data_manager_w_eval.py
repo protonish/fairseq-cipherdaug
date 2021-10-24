@@ -81,6 +81,7 @@ class MultilingualDatasetManagerWithEval(object):
         self.switchout_tau = args.switchout_tau
         self.raml_tau = args.raml_tau
         self.word_dropout = args.word_dropout
+        self.lang_tok_style_ = args.lang_tok_style
 
     @classmethod
     def setup_data_manager(cls, args, lang_pairs, langs, dicts, sampling_method):
@@ -364,6 +365,10 @@ class MultilingualDatasetManagerWithEval(object):
             return d
 
         dicts = cls.load_all_dictionaries(args, language_list, load_dictionary_and_postproc, training)
+
+        # adding for easy search and access among connected classes
+        # cls.language_list = language_list
+
         return language_list, dicts, training
 
     @classmethod
@@ -382,6 +387,7 @@ class MultilingualDatasetManagerWithEval(object):
             )
             src_langs_to_load_dicts = sorted({p.split("-")[0] for p in (args.lang_pairs + extra_lang_pairs)})
             tgt_langs_to_load_dicts = sorted({p.split("-")[1] for p in (args.lang_pairs + extra_lang_pairs)})
+
         else:
             src_langs_to_load_dicts = [args.source_lang]
             tgt_langs_to_load_dicts = [args.target_lang]
@@ -628,6 +634,8 @@ class MultilingualDatasetManagerWithEval(object):
             switchout_tau=self.switchout_tau,
             raml_tau=self.raml_tau,
             word_dropout=self.word_dropout,
+            multi_langs=self.langs,
+            lang_tok_style=self.self.lang_tok_style_,
         )
 
     def src_dataset_tranform_func(self, src_lang, tgt_lang, dataset, spec=None):

@@ -245,6 +245,8 @@ class LanguagePairDataset(FairseqDataset):
         switchout_tau=None,
         raml_tau=None,
         word_dropout=False,
+        multi_langs=None,
+        lang_tok_style=None,
     ):
         if tgt_dict is not None:
             assert src_dict.pad() == tgt_dict.pad()
@@ -309,7 +311,12 @@ class LanguagePairDataset(FairseqDataset):
         self.switchout_tau = switchout_tau
         self.raml_tau = raml_tau
         self.word_dropout = word_dropout
-        self.switcher = SwitchOut(src_dict, tgt_dict, switchout_tau, raml_tau)
+        self.langs = multi_langs
+        self.lang_tok_style = lang_tok_style
+        self.switcher = SwitchOut(src_dict, tgt_dict, switchout_tau, raml_tau, multi_langs, lang_tok_style)
+        if multi_langs and lang_tok_style:
+            logger.info("Multilingual SwitchOut instance created.")
+
         if switchout_tau:
             if word_dropout:
                 logger.info("Applying WordDropout with tau = {}".format(switchout_tau))

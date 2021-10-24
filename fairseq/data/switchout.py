@@ -4,12 +4,18 @@ import torch
 from torch.autograd import Variable
 
 from fairseq.data import data_utils
+from fairseq.data.multilingual.multilingual_utils import (
+    EncoderLangtok,
+    LangTokSpec,
+    LangTokStyle,
+    get_lang_tok,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class SwitchOut(object):
-    def __init__(self, src_dict, tgt_dict, switch_tau, raml_tau) -> None:
+    def __init__(self, src_dict, tgt_dict, switch_tau, raml_tau, langs=None, lang_tok_style=None) -> None:
         super().__init__()
         self.src_dict = src_dict
         self.tgt_dict = tgt_dict
@@ -24,6 +30,10 @@ class SwitchOut(object):
 
         self.switch_tau = switch_tau
         self.raml_tau = raml_tau
+
+        # for multilingual only
+        self.langs = langs
+        self.lang_tok_style = lang_tok_style
 
     def switchout(self, sents, tau=0.1):
         bsz, n_steps = sents.size()
