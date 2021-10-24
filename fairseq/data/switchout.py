@@ -36,6 +36,7 @@ class SwitchOut(object):
         self.lang_tok_style = lang_tok_style
         if self.langs and self.lang_tok_style:
             self.lang_tok_ids = self.get_available_lang_ids()
+            self.src_vocab_size_no_langs = self.src_vocab_size - len(self.lang_tok_ids)
 
     def get_available_lang_ids(self):
         lang_toks, lang_ids = [], []
@@ -64,9 +65,9 @@ class SwitchOut(object):
 
         lengths = (1.0 - mask.float()).sum(dim=1)
 
-        import ipdb
+        # import ipdb
 
-        ipdb.set_trace()
+        # ipdb.set_trace()
 
         # sample the number of words to corrupt fr each sentence
         logits = torch.arange(n_steps)
@@ -96,10 +97,19 @@ class SwitchOut(object):
         corrupt_val = torch.LongTensor(total_words)
         # starts from 2 because pad_idx = 1, eos_idx = 2 in fairseq dict
         # we don't want to replace tokens with bos/eos/pad token
-        corrupt_val = corrupt_val.random_(3, self.src_vocab_size)
+        if self.lang_tok_ids and self.src_vocab_size_no_langs:
+            # multilingual; removed lang_tok_ids from vocab
+            corrupt_val = corrupt_val.random_(3, self.src_vocab_size_no_langs)
+        else:
+            corrupt_val = corrupt_val.random_(3, self.src_vocab_size)
+
         corrupts = torch.zeros(bsz, n_steps).long()
         corrupts = corrupts.masked_scatter_(corrupt_pos, corrupt_val)
-        sampled_sents = sents.add(Variable(corrupts)).remainder_(self.src_vocab_size)
+        # for multilingual removed lang ids
+        if self.lang_tok_ids and self.src_vocab_size_no_langs:
+            sampled_sents = sents.add(Variable(corrupts)).remainder_(self.src_vocab_size_no_langs)
+        else:
+            sampled_sents = sents.add(Variable(corrupts)).remainder_(self.src_vocab_size)
 
         return sampled_sents
 
