@@ -635,7 +635,7 @@ class MultilingualDatasetManagerWithEval(object):
             raml_tau=self.raml_tau,
             word_dropout=self.word_dropout,
             multi_langs=self.langs,
-            lang_tok_style=self.self.lang_tok_style_,
+            lang_tok_style=self.lang_tok_style_,
         )
 
     def src_dataset_tranform_func(self, src_lang, tgt_lang, dataset, spec=None):
