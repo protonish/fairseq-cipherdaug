@@ -315,7 +315,8 @@ class LanguagePairDataset(FairseqDataset):
         self.lang_tok_style = lang_tok_style
         self.switcher = SwitchOut(src_dict, tgt_dict, switchout_tau, raml_tau, multi_langs, lang_tok_style)
         if multi_langs and lang_tok_style:
-            logger.info("Multilingual SwitchOut instance created.")
+            if switchout_tau or raml_tau:
+                logger.info("Multilingual SwitchOut instance created.")
 
         if switchout_tau:
             if word_dropout:
