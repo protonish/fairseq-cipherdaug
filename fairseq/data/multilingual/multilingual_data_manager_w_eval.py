@@ -619,6 +619,19 @@ class MultilingualDatasetManagerWithEval(object):
                 f"[{split}] {src}-{tgt}: src length={len(src_dataset)}; tgt length={len(tgt_dataset)}"
             )
         print("----------------------> HERE ----------------------")
+
+        # apply SwitchOut to train only
+        # the tau hyperparameters act as switches
+        # setting them to None ensures SwitchOut is not applied
+        if split not in ["train", "training"]:
+            switchout_tau = None
+            raml_tau = None
+            word_dropout = False
+        else:
+            switchout_tau = self.switchout_tau
+            raml_tau = self.raml_tau
+            word_dropout = self.word_dropout
+
         return LanguagePairDataset(
             src_dataset,
             src_dataset.sizes,
