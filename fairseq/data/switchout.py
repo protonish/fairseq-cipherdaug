@@ -37,6 +37,7 @@ class SwitchOut(object):
         if self.langs and self.lang_tok_style:
             self.lang_tok_ids = self.get_available_lang_ids()
             self.src_vocab_size_no_langs = self.src_vocab_size - len(self.lang_tok_ids)
+            self.tgt_vocab_size_no_langs = self.tgt_vocab_size - len(self.lang_tok_ids)
 
     def get_available_lang_ids(self):
         lang_toks, lang_ids = [], []
@@ -64,10 +65,6 @@ class SwitchOut(object):
                 mask = mask | torch.eq(sents, lang_tok_id)
 
         lengths = (1.0 - mask.float()).sum(dim=1)
-
-        # import ipdb
-
-        # ipdb.set_trace()
 
         # sample the number of words to corrupt fr each sentence
         logits = torch.arange(n_steps)
@@ -121,6 +118,11 @@ class SwitchOut(object):
             self.raml_tau = tau
         # compute mask for sents without  bos/eos/pad
         mask = torch.eq(sents, self.bos_id) | torch.eq(sents, self.eos_id) | torch.eq(sents, self.pad_id)
+        # for multilingual only
+        if self.lang_tok_ids:
+            for lang_tok_id in self.lang_tok_ids:
+                mask = mask | torch.eq(sents, lang_tok_id)
+
         lengths = (1.0 - mask.float()).sum(dim=1)
 
         # sample the number of words to corrupt fr each sentence
@@ -151,16 +153,29 @@ class SwitchOut(object):
         corrupt_val = torch.LongTensor(total_words)
         # starts from 2 because pad_idx = 1, eos_idx = 2 in fairseq dict
         # we don't want to replace tokens with bos/eos/pad token
-        corrupt_val = corrupt_val.random_(3, self.tgt_vocab_size)
+        if self.lang_tok_ids and self.tgt_vocab_size_no_langs:
+            # multilingual; removed lang_tok_ids from vocab
+            corrupt_val = corrupt_val.random_(3, self.tgt_vocab_size_no_langs)
+        else:
+            corrupt_val = corrupt_val.random_(3, self.tgt_vocab_size)
         corrupts = torch.zeros(bsz, n_steps).long()
         corrupts = corrupts.masked_scatter_(corrupt_pos, corrupt_val)
-        sampled_sents = sents.add(Variable(corrupts)).remainder_(self.tgt_vocab_size)
+        # for multilingual removed lang ids
+        if self.lang_tok_ids and self.tgt_vocab_size_no_langs:
+            sampled_sents = sents.add(Variable(corrupts)).remainder_(self.tgt_vocab_size_no_langs)
+        else:
+            sampled_sents = sents.add(Variable(corrupts)).remainder_(self.tgt_vocab_size)
 
         return sampled_sents
 
     def raml_together(self, tgt_sents, shift_tgt_sents, tau=0.1):
         def get_mask_and_lengths(sents):
             mask = torch.eq(sents, self.bos_id) | torch.eq(sents, self.eos_id) | torch.eq(sents, self.pad_id)
+            # for multilingual only
+            if self.lang_tok_ids:
+                for lang_tok_id in self.lang_tok_ids:
+                    mask = mask | torch.eq(sents, lang_tok_id)
+
             lengths = (1.0 - mask.float()).sum(dim=1)
             return mask, lengths
 
@@ -189,7 +204,7 @@ class SwitchOut(object):
         # temp fix is to clamp anything greater than length to length
         # TODO: investigate this further
         if torch.any(num_words > t_lengths):
-            logger.info("SwithOut: num_words > lengths. Clamping tensor to a ceil of lengths.")
+            logger.info("SwitchOut:RAML: num_words > lengths. Clamping tensor to a ceil of lengths.")
             num_words = num_words.float()
             t_lengths = t_lengths.float()
             num_words[num_words > t_lengths] = t_lengths[num_words > t_lengths]
@@ -223,15 +238,29 @@ class SwitchOut(object):
         corrupt_val = torch.LongTensor(total_words)
         # starts from 3 because pad_idx = 1, eos_idx = 2 in fairseq dict
         # we don't want to replace tokens with bos/eos/pad token
-        corrupt_val = corrupt_val.random_(3, self.tgt_vocab_size)
+        if self.lang_tok_ids and self.tgt_vocab_size_no_langs:
+            # multilingual; removed lang_tok_ids from vocab
+            corrupt_val = corrupt_val.random_(3, self.tgt_vocab_size_no_langs)
+        else:
+            corrupt_val = corrupt_val.random_(3, self.tgt_vocab_size)
 
         corrupts = torch.zeros(bsz, n_steps).long()
 
         t_corrupts = corrupts.masked_scatter(common_corrupt_pos[:, 1:].contiguous(), corrupt_val)
         shift_t_corrupts = corrupts.masked_scatter(common_corrupt_pos[:, :-1].contiguous(), corrupt_val)
 
-        tgt_sampled_sents = tgt_sents.add(Variable(t_corrupts)).remainder_(self.tgt_vocab_size)
-        shift_tgt_sampled_sents = shift_tgt_sents.add(Variable(shift_t_corrupts)).remainder_(self.tgt_vocab_size)
+        if self.lang_tok_ids and self.tgt_vocab_size_no_langs:
+            # for multilingual only
+            tgt_sampled_sents = tgt_sents.add(Variable(t_corrupts)).remainder_(self.tgt_vocab_size_no_langs)
+            shift_tgt_sampled_sents = shift_tgt_sents.add(Variable(shift_t_corrupts)).remainder_(
+                self.tgt_vocab_size_no_langs
+            )
+        else:
+            tgt_sampled_sents = tgt_sents.add(Variable(t_corrupts)).remainder_(self.tgt_vocab_size)
+            shift_tgt_sampled_sents = shift_tgt_sents.add(Variable(shift_t_corrupts)).remainder_(self.tgt_vocab_size)
+
+        # tgt_sampled_sents = tgt_sents.add(Variable(t_corrupts)).remainder_(self.tgt_vocab_size)
+        # shift_tgt_sampled_sents = shift_tgt_sents.add(Variable(shift_t_corrupts)).remainder_(self.tgt_vocab_size)
 
         return tgt_sampled_sents, shift_tgt_sampled_sents
 
@@ -261,7 +290,7 @@ class SwitchOut(object):
         # temp fix is to clamp anything greater than length to length
         # TODO: investigate this further
         if torch.any(num_words > lengths):
-            logger.info("SwithOut: num_words > lengths. Clamping tensor to a ceil of lengths.")
+            logger.info("SwitchOut:WordDrop num_words > lengths. Clamping tensor to a ceil of lengths.")
             num_words = num_words.float()
             lengths = lengths.float()
             num_words[num_words > lengths] = lengths[num_words > lengths]
