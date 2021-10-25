@@ -243,6 +243,11 @@ class SwitchOut(object):
             self.switch_tau = tau
         # compute mask for sents without  bos/eos/pad
         mask = torch.eq(sents, self.bos_id) | torch.eq(sents, self.eos_id) | torch.eq(sents, self.pad_id)
+        # for multilingual only
+        if self.lang_tok_ids:
+            for lang_tok_id in self.lang_tok_ids:
+                mask = mask | torch.eq(sents, lang_tok_id)
+
         lengths = (1.0 - mask.float()).sum(dim=1)
 
         # sample the number of words to corrupt fr each sentence
