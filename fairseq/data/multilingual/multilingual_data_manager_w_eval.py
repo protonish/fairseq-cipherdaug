@@ -618,7 +618,6 @@ class MultilingualDatasetManagerWithEval(object):
                 f"Reusing source and target datasets of [{split}] {tgt}-{src} for reversed direction: "
                 f"[{split}] {src}-{tgt}: src length={len(src_dataset)}; tgt length={len(tgt_dataset)}"
             )
-        print("----------------------> HERE ----------------------")
 
         # apply SwitchOut to train only
         # the tau hyperparameters act as switches
@@ -644,9 +643,9 @@ class MultilingualDatasetManagerWithEval(object):
             align_dataset=align_dataset,
             src_lang_id=src_lang_id,
             tgt_lang_id=tgt_lang_id,
-            switchout_tau=self.switchout_tau,
-            raml_tau=self.raml_tau,
-            word_dropout=self.word_dropout,
+            switchout_tau=switchout_tau,
+            raml_tau=raml_tau,
+            word_dropout=word_dropout,
             multi_langs=self.langs,
             lang_tok_style=self.lang_tok_style_,
         )
