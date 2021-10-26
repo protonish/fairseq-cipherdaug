@@ -632,7 +632,7 @@ class MultilingualDatasetManagerWithEval(object):
             switchout_tau = self.switchout_tau
             raml_tau = self.raml_tau
             word_dropout = self.word_dropout
-            # raml_prime = self.raml_prime
+            raml_prime = self.raml_prime
 
         return LanguagePairDataset(
             src_dataset,
