@@ -129,17 +129,12 @@ def collate(
             if target.shape == prev_output_tokens.shape:
                 if raml_prime:
                     # this adds raml to shifted targets only; the original target remains same
-                    # prev_output_tokens = switcher.raml_prime(prev_output_tokens, raml_tau)
-                    target = switcher.raml_prime(target, raml_tau)
-                    print("yes!")
+                    prev_output_tokens = switcher.raml_prime(prev_output_tokens, raml_tau)
+                    # target = switcher.raml_prime(target, raml_tau)
                 else:
                     target, prev_output_tokens = switcher.raml_together(target, prev_output_tokens, raml_tau)
-                    print("no!")
             else:
                 logger.warning("Can't apply RAML; target.shape != prev_output_tokens.shape")
-    import ipdb
-
-    ipdb.set_trace()
 
     batch = {
         "id": id,
