@@ -114,6 +114,8 @@ class TranslationMultiSimpleEpochEvalTask(LegacyFairseqTask):
                             help='this value bot enables SwitchOut [RAML] (tgt) and sets the tau value.')
         parser.add_argument('--word-dropout', action='store_true', default=False,
                             help='this turns on WordDropout; requires --switchout-tau value to non-zero.')
+        parser.add_argument('--raml-prime', action='store_true', default=False,
+                            help='this turns on RAML-PRIME; requires --raml-tau value to non-zero.')
 
         SamplingMethod.add_arguments(parser)
         MultilingualDatasetManagerWithEval.add_args(parser)

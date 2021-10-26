@@ -110,7 +110,10 @@ class SwitchOut(object):
 
         return sampled_sents
 
-    def raml(self, sents, tau=0.1):
+    def raml_prime(self, sents, tau=0.1):
+        """
+        applies RAML to shifted targets only and not the targets
+        """
         bsz, n_steps = sents.size()
 
         # we don't want the tau to be dynamic

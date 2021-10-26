@@ -80,6 +80,7 @@ class MultilingualDatasetManagerWithEval(object):
         # switchout args
         self.switchout_tau = args.switchout_tau
         self.raml_tau = args.raml_tau
+        self.raml_prime = args.raml_prime
         self.word_dropout = args.word_dropout
         self.lang_tok_style_ = args.lang_tok_style
 
@@ -626,10 +627,12 @@ class MultilingualDatasetManagerWithEval(object):
             switchout_tau = None
             raml_tau = None
             word_dropout = False
+            raml_prime = False
         else:
             switchout_tau = self.switchout_tau
             raml_tau = self.raml_tau
             word_dropout = self.word_dropout
+            # raml_prime = self.raml_prime
 
         return LanguagePairDataset(
             src_dataset,
@@ -646,6 +649,7 @@ class MultilingualDatasetManagerWithEval(object):
             switchout_tau=switchout_tau,
             raml_tau=raml_tau,
             word_dropout=word_dropout,
+            raml_prime=raml_prime,
             multi_langs=self.langs,
             lang_tok_style=self.lang_tok_style_,
         )

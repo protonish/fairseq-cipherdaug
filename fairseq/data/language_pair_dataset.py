@@ -28,6 +28,7 @@ def collate(
     switchout_tau=None,
     raml_tau=None,
     word_dropout=False,
+    raml_prime=False,
 ):
     if len(samples) == 0:
         return {}
@@ -126,7 +127,11 @@ def collate(
     if switcher is not None and raml_tau is not None and raml_tau > 0.0:
         if prev_output_tokens is not None:
             if target.shape == prev_output_tokens.shape:
-                target, prev_output_tokens = switcher.raml_together(target, prev_output_tokens, raml_tau)
+                if raml_prime:
+                    # this adds raml to shifted targets only; the original target remains same
+                    prev_output_tokens = switcher.raml_together(target, prev_output_tokens, raml_tau)
+                else:
+                    target, prev_output_tokens = switcher.raml_together(target, prev_output_tokens, raml_tau)
             else:
                 logger.warning("Can't apply RAML; target.shape != prev_output_tokens.shape")
 
@@ -245,6 +250,7 @@ class LanguagePairDataset(FairseqDataset):
         switchout_tau=None,
         raml_tau=None,
         word_dropout=False,
+        raml_prime=False,
         multi_langs=None,
         lang_tok_style=None,
     ):
@@ -311,6 +317,7 @@ class LanguagePairDataset(FairseqDataset):
         self.switchout_tau = switchout_tau
         self.raml_tau = raml_tau
         self.word_dropout = word_dropout
+        self.raml_prime = raml_prime
         self.langs = multi_langs
         self.lang_tok_style = lang_tok_style
         self.switcher = SwitchOut(src_dict, tgt_dict, switchout_tau, raml_tau, multi_langs, lang_tok_style)
@@ -324,7 +331,10 @@ class LanguagePairDataset(FairseqDataset):
             else:
                 logger.info("Applying SwitchOut with tau = {}".format(switchout_tau))
         if raml_tau:
-            logger.info("Applying RAML with tau = {}".format(raml_tau))
+            if raml_prime:
+                logger.info("Applying RAML-PRIME with tau = {}".format(raml_tau))
+            else:
+                logger.info("Applying RAML with tau = {}".format(raml_tau))
 
     def get_batch_shapes(self):
         return self.buckets
