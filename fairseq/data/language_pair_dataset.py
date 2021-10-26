@@ -435,6 +435,7 @@ class LanguagePairDataset(FairseqDataset):
             switchout_tau=self.switchout_tau,
             raml_tau=self.raml_tau,
             word_dropout=self.word_dropout,
+            raml_prime=self.raml_prime,
         )
 
         if self.src_lang_id is not None or self.tgt_lang_id is not None:
