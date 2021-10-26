@@ -139,7 +139,7 @@ class SwitchOut(object):
         # temp fix is to clamp anything greater than length to length
         # TODO: investigate this further
         if torch.any(num_words > lengths):
-            logger.info("SwithOut: num_words > lengths. Clamping tensor to a ceil of lengths.")
+            logger.info("SwithOut:RAML-PRIME num_words > lengths. Clamping tensor to a ceil of lengths.")
             num_words = num_words.float()
             lengths = lengths.float()
             num_words[num_words > lengths] = lengths[num_words > lengths]
