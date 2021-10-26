@@ -131,6 +131,7 @@ def collate(
                     # this adds raml to shifted targets only; the original target remains same
                     # prev_output_tokens = switcher.raml_prime(prev_output_tokens, raml_tau)
                     target = switcher.raml_prime(target, raml_tau)
+                    print("yes!")
                 else:
                     target, prev_output_tokens = switcher.raml_together(target, prev_output_tokens, raml_tau)
             else:
