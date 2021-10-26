@@ -134,8 +134,12 @@ def collate(
                     print("yes!")
                 else:
                     target, prev_output_tokens = switcher.raml_together(target, prev_output_tokens, raml_tau)
+                    print("no!")
             else:
                 logger.warning("Can't apply RAML; target.shape != prev_output_tokens.shape")
+    import ipdb
+
+    ipdb.set_trace()
 
     batch = {
         "id": id,
