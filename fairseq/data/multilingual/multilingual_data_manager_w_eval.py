@@ -662,7 +662,7 @@ class MultilingualDatasetManagerWithEval(object):
             raml_prime = self.raml_prime
 
             if prime_src_dataset is not None:
-                logger.infor("prime_src_dataset is not None. Initializing LangTripleDataset instance.")
+                logger.info("prime_src_dataset is not None. Initializing LangTripleDataset instance.")
                 return LanguageTripleDataset(
                     src_dataset,
                     src_dataset.sizes,
