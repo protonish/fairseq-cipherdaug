@@ -17,6 +17,7 @@ from fairseq.data import (
     ConcatDataset,
     Dictionary,
     LanguagePairDataset,
+    LanguageTripleDataset,
     PrependTokenDataset,
     SampledMultiDataset,
     SampledMultiEpochDataset,
@@ -607,6 +608,32 @@ class MultilingualDatasetManagerWithEval(object):
             )
             src_dataset = src_dataset_transform_func(src_dataset)
             tgt_dataset = tgt_dataset_transform_func(tgt_dataset)
+
+            # load primary language pair (de-en)
+            prime_src = "de"
+            prime_tgt = "en"
+            if split in ["train"]:
+                prime_src_dataset, prime_tgt_dataset, prime_align_dataset = self.load_lang_dataset(
+                    data_path,
+                    split,
+                    prime_src,
+                    src_dict,
+                    prime_tgt,
+                    tgt_dict,
+                    combine,
+                    dataset_impl,
+                    upsample_primary,
+                    max_source_positions=max_source_positions,
+                    prepend_bos=prepend_bos,
+                    load_alignments=load_alignments,
+                    truncate_source=truncate_source,
+                )
+                prime_src_dataset = src_dataset_transform_func(prime_src_dataset)
+                prime_tgt_dataset = tgt_dataset_transform_func(prime_tgt_dataset)
+            else:
+                prime_src_dataset = None
+                prime_tgt_dataset = None
+
             if langpairs_sharing_datasets is not None:
                 langpairs_sharing_datasets[(data_path, split, norm_direction, src)] = src_dataset
                 langpairs_sharing_datasets[(data_path, split, norm_direction, tgt)] = tgt_dataset
@@ -633,6 +660,30 @@ class MultilingualDatasetManagerWithEval(object):
             raml_tau = self.raml_tau
             word_dropout = self.word_dropout
             raml_prime = self.raml_prime
+
+            if prime_src_dataset is not None:
+                logger.infor("prime_src_dataset is not None. Initializing LangTripleDataset instance.")
+                return LanguageTripleDataset(
+                    src_dataset,
+                    src_dataset.sizes,
+                    src_dict,
+                    tgt_dataset,
+                    tgt_dataset.sizes if tgt_dataset is not None else None,
+                    tgt_dict,
+                    left_pad_source=left_pad_source,
+                    left_pad_target=left_pad_target,
+                    align_dataset=align_dataset,
+                    src_lang_id=src_lang_id,
+                    tgt_lang_id=tgt_lang_id,
+                    switchout_tau=switchout_tau,
+                    raml_tau=raml_tau,
+                    word_dropout=word_dropout,
+                    raml_prime=raml_prime,
+                    multi_langs=self.langs,
+                    lang_tok_style=self.lang_tok_style_,
+                    prime_src=prime_src_dataset,
+                    prime_src_sizes=prime_src_dataset.sizes,
+                )
 
         return LanguagePairDataset(
             src_dataset,
