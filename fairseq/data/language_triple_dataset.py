@@ -93,9 +93,9 @@ def collate(
     prime_src_tokens = prime_src_tokens.index_select(0, sort_order)
     # prime source ends
 
-    import ipdb
+    # import ipdb
 
-    ipdb.set_trace()
+    # ipdb.set_trace()
 
     # apply switchout to source here
     if switcher is not None and switchout_tau is not None and switchout_tau > 0.0:
@@ -215,7 +215,7 @@ def collate(
 
 class LanguageTripleDataset(FairseqDataset):
     """
-    A pair of torch.utils.data.Datasets.
+    A triple of torch.utils.data.Datasets.
 
     Args:
         src (torch.utils.data.Dataset): source dataset to wrap

@@ -84,6 +84,10 @@ class MultilingualDatasetManagerWithEval(object):
         self.raml_prime = args.raml_prime
         self.word_dropout = args.word_dropout
         self.lang_tok_style_ = args.lang_tok_style
+        # prime dataset
+        self.prime_src = "de"
+        self.prime_tgt = "en"
+        self.prime_src_dataset = None
 
     @classmethod
     def setup_data_manager(cls, args, lang_pairs, langs, dicts, sampling_method):
@@ -612,27 +616,29 @@ class MultilingualDatasetManagerWithEval(object):
             # load primary language pair (de-en)
             prime_src = "de"
             prime_tgt = "en"
-            if split in ["train"]:
-                prime_src_dataset, prime_tgt_dataset, prime_align_dataset = self.load_lang_dataset(
-                    data_path,
-                    split,
-                    prime_src,
-                    src_dict,
-                    prime_tgt,
-                    tgt_dict,
-                    combine,
-                    dataset_impl,
-                    upsample_primary,
-                    max_source_positions=max_source_positions,
-                    prepend_bos=prepend_bos,
-                    load_alignments=load_alignments,
-                    truncate_source=truncate_source,
-                )
-                prime_src_dataset = src_dataset_transform_func(prime_src_dataset)
-                prime_tgt_dataset = tgt_dataset_transform_func(prime_tgt_dataset)
-            else:
-                prime_src_dataset = None
-                prime_tgt_dataset = None
+            if split in ["train"] and self.prime_src is not None:
+                if self.prime_src_dataset is None:
+                    prime_src_dataset, prime_tgt_dataset, prime_align_dataset = self.load_lang_dataset(
+                        data_path,
+                        split,
+                        prime_src,
+                        src_dict,
+                        prime_tgt,
+                        tgt_dict,
+                        combine,
+                        dataset_impl,
+                        upsample_primary,
+                        max_source_positions=max_source_positions,
+                        prepend_bos=prepend_bos,
+                        load_alignments=load_alignments,
+                        truncate_source=truncate_source,
+                    )
+                    prime_src_dataset = src_dataset_transform_func(prime_src_dataset)
+                    # prime_tgt_dataset = tgt_dataset_transform_func(prime_tgt_dataset)
+                    self.prime_src_dataset = prime_src_dataset
+            # else:
+            #     prime_src_dataset = None
+            #     prime_tgt_dataset = None
 
             if langpairs_sharing_datasets is not None:
                 langpairs_sharing_datasets[(data_path, split, norm_direction, src)] = src_dataset
@@ -661,10 +667,10 @@ class MultilingualDatasetManagerWithEval(object):
             word_dropout = self.word_dropout
             raml_prime = self.raml_prime
 
-            if prime_src_dataset is not None:
-                import ipdb
+            if self.prime_src is not None and self.prime_src_dataset is not None:
+                # import ipdb
 
-                ipdb.set_trace()
+                # ipdb.set_trace()
 
                 logger.info("prime_src_dataset is not None. Initializing LangTripleDataset instance.")
                 return LanguageTripleDataset(
@@ -685,8 +691,8 @@ class MultilingualDatasetManagerWithEval(object):
                     raml_prime=raml_prime,
                     multi_langs=self.langs,
                     lang_tok_style=self.lang_tok_style_,
-                    prime_src=prime_src_dataset,
-                    prime_src_sizes=prime_src_dataset.sizes,
+                    prime_src=self.prime_src_dataset,
+                    prime_src_sizes=self.prime_src_dataset.sizes,
                 )
 
         return LanguagePairDataset(
