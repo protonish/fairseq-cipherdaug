@@ -15,7 +15,7 @@ class TranslationMultiSimpleEpochCipherTask(TranslationMultiSimpleEpochEvalTask)
         parser.add_argument("--reg-alpha", default=0, type=int)
 
     def __init__(self, args, langs, dicts, training):
-        super().__init__(self, args, langs, dicts, training)
+        super().__init__(args, langs, dicts, training)
         self.criterion_reg_alpha = getattr(args, "reg_alpha", 0)
 
     # def train_step(self, sample, model, criterion, optimizer, update_num, ignore_grad=False):
