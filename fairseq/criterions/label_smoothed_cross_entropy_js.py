@@ -80,16 +80,19 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
         loss = (p_loss + q_loss) / 2
         return loss
 
-    def forward_js(self, model, sample, optimizer, reg_alpha, ignore_grad, reduce=True):
+    def forward(self, model, sample, reduce=True):
+
+        if "prime" not in sample:
+            return super().forward(model, sample, reduce=reduce)
 
         sample_input = sample["net_input"]
         prime_sample_input = sample["prime"]["net_input"]
 
-        prime_sample = {
-            "src_tokens": prime_sample_input["src_tokens"],
-            "src_lengths": prime_sample_input["src_lengths"],
-            "prev_output_tokens": sample_input["prev_output_tokens"],
-        }
+        # prime_sample = {
+        #     "src_tokens": prime_sample_input["src_tokens"],
+        #     "src_lengths": prime_sample_input["src_lengths"],
+        #     "prev_output_tokens": sample_input["prev_output_tokens"],
+        # }
 
         # original outputs
         net_output = model(**sample_input)
@@ -127,22 +130,19 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
             reduce=reduce,
         )
 
-        # og_loss, og_nll_loss = self.compute_loss(model, net_output, sample, reduce=reduce)
+        js_loss = self.compute_kl_loss(model, net_output, prime_net_output, pad_mask=pad_mask)
 
-        kl_loss = self.compute_kl_loss(model, net_output, prime_net_output, pad_mask=pad_mask)
-
-        loss = og_loss + prime_loss + self.js_alpha * kl_loss
-        if ignore_grad:
-            loss *= 0
-        with torch.autograd.profiler.record_function("backward"):
-            optimizer.backward(loss)
+        loss = og_loss + prime_loss + self.js_alpha * js_loss
 
         ntokens = sample["ntokens"]
-        nsentences = sample["target"].size(0)
-        sample_size = sample["ntokens"] * 2
+        nsentences = sample["target"].size(0) * 2
+        sample_size = sample["target"].size(0) if self.sentence_avg else sample["ntokens"]
+        sample_size = sample_size * 2
+
         logging_output = {
             "loss": utils.item(loss.data) if reduce else loss.data,
             "nll_loss": utils.item(og_nll_loss.data) if reduce else og_nll_loss.data,
+            "js_loss": utils.item(js_loss.data) if reduce else js_loss.data,
             "ntokens": ntokens,
             "nsentences": nsentences,
             "sample_size": sample_size,
