@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 
 class StatefulContainer(object):
-
     def __init__(self):
         self._state = dict()
         self._factories = dict()
@@ -95,9 +94,7 @@ class FairseqTask(object):
         return Dictionary.load(filename)
 
     @classmethod
-    def build_dictionary(
-        cls, filenames, workers=1, threshold=-1, nwords=-1, padding_factor=8
-    ):
+    def build_dictionary(cls, filenames, workers=1, threshold=-1, nwords=-1, padding_factor=8):
         """Build the dictionary
 
         Args:
@@ -112,9 +109,7 @@ class FairseqTask(object):
         """
         d = Dictionary()
         for filename in filenames:
-            Dictionary.add_file_to_dictionary(
-                filename, d, tokenizer.tokenize_line, workers
-            )
+            Dictionary.add_file_to_dictionary(filename, d, tokenizer.tokenize_line, workers)
         d.finalize(threshold=threshold, nwords=nwords, padding_factor=padding_factor)
         return d
 
@@ -130,13 +125,7 @@ class FairseqTask(object):
     def has_sharded_data(self, split):
         return os.pathsep in getattr(self.cfg, "data", "")
 
-    def load_dataset(
-        self,
-        split: str,
-        combine: bool = False,
-        task_cfg: FairseqDataclass = None,
-        **kwargs
-    ):
+    def load_dataset(self, split: str, combine: bool = False, task_cfg: FairseqDataclass = None, **kwargs):
         """Load a given dataset split.
 
         Args:
@@ -165,9 +154,7 @@ class FairseqTask(object):
             raise TypeError("Datasets are expected to be of type FairseqDataset")
         return self.datasets[split]
 
-    def filter_indices_by_size(
-        self, indices, dataset, max_positions=None, ignore_invalid_inputs=False
-    ):
+    def filter_indices_by_size(self, indices, dataset, max_positions=None, ignore_invalid_inputs=False):
         """
         Filter examples that are too large
 
@@ -192,8 +179,7 @@ class FairseqTask(object):
                 )
             logger.warning(
                 (
-                    "{:,} samples have invalid sizes and will be skipped, "
-                    "max_positions={}, first few sample ids={}"
+                    "{:,} samples have invalid sizes and will be skipped, " "max_positions={}, first few sample ids={}"
                 ).format(len(ignored), max_positions, ignored[:10])
             )
         return indices
@@ -256,9 +242,7 @@ class FairseqTask(object):
             ~fairseq.iterators.EpochBatchIterator: a batched iterator over the
                 given dataset split
         """
-        can_reuse_epoch_itr = not disable_iterator_cache and self.can_reuse_epoch_itr(
-            dataset
-        )
+        can_reuse_epoch_itr = not disable_iterator_cache and self.can_reuse_epoch_itr(dataset)
         if can_reuse_epoch_itr and dataset in self.dataset_to_epoch_iter:
             logger.debug("reusing EpochBatchIterator for epoch {}".format(epoch))
             return self.dataset_to_epoch_iter[dataset]
@@ -274,9 +258,7 @@ class FairseqTask(object):
 
         # filter examples that are too large
         if max_positions is not None:
-            indices = self.filter_indices_by_size(
-                indices, dataset, max_positions, ignore_invalid_inputs
-            )
+            indices = self.filter_indices_by_size(indices, dataset, max_positions, ignore_invalid_inputs)
 
         # create mini-batches with given size constraints
         batch_sampler = dataset.batch_by_size(
@@ -337,7 +319,12 @@ class FairseqTask(object):
         return criterions.build_criterion(cfg, self)
 
     def build_generator(
-        self, models, args, seq_gen_cls=None, extra_gen_cls_kwargs=None, prefix_allowed_tokens_fn=None,
+        self,
+        models,
+        args,
+        seq_gen_cls=None,
+        extra_gen_cls_kwargs=None,
+        prefix_allowed_tokens_fn=None,
     ):
         """
         Build a :class:`~fairseq.SequenceGenerator` instance for this
@@ -404,9 +391,7 @@ class FairseqTask(object):
         assert sampling_topp < 0 or sampling, "--sampling-topp requires --sampling"
 
         if sampling:
-            search_strategy = search.Sampling(
-                self.target_dictionary, sampling_topk, sampling_topp
-            )
+            search_strategy = search.Sampling(self.target_dictionary, sampling_topk, sampling_topp)
         elif diverse_beam_groups > 0:
             search_strategy = search.DiverseBeamSearch(
                 self.target_dictionary, diverse_beam_groups, diverse_beam_strength
@@ -423,17 +408,11 @@ class FairseqTask(object):
                 max_len_b=0,
             )
         elif diversity_rate > -1:
-            search_strategy = search.DiverseSiblingsSearch(
-                self.target_dictionary, diversity_rate
-            )
+            search_strategy = search.DiverseSiblingsSearch(self.target_dictionary, diversity_rate)
         elif constrained:
-            search_strategy = search.LexicallyConstrainedBeamSearch(
-                self.target_dictionary, args.constraints
-            )
+            search_strategy = search.LexicallyConstrainedBeamSearch(self.target_dictionary, args.constraints)
         elif prefix_allowed_tokens_fn:
-            search_strategy = search.PrefixConstrainedBeamSearch(
-                self.target_dictionary, prefix_allowed_tokens_fn
-            )
+            search_strategy = search.PrefixConstrainedBeamSearch(self.target_dictionary, prefix_allowed_tokens_fn)
         else:
             search_strategy = search.BeamSearch(self.target_dictionary)
 
@@ -462,9 +441,7 @@ class FairseqTask(object):
             **extra_gen_cls_kwargs,
         )
 
-    def train_step(
-        self, sample, model, criterion, optimizer, update_num, ignore_grad=False
-    ):
+    def train_step(self, sample, model, criterion, optimizer, update_num, ignore_grad=False):
         """
         Do forward and backward, and return the loss as computed by *criterion*
         for the given *model* and *sample*.
@@ -510,13 +487,9 @@ class FairseqTask(object):
     ) -> torch.utils.data.Dataset:
         raise NotImplementedError
 
-    def inference_step(
-        self, generator, models, sample, prefix_tokens=None, constraints=None
-    ):
+    def inference_step(self, generator, models, sample, prefix_tokens=None, constraints=None):
         with torch.no_grad():
-            return generator.generate(
-                models, sample, prefix_tokens=prefix_tokens, constraints=constraints
-            )
+            return generator.generate(models, sample, prefix_tokens=prefix_tokens, constraints=constraints)
 
     def begin_epoch(self, epoch, model):
         """Hook function called before the start of each epoch."""
@@ -529,8 +502,7 @@ class FairseqTask(object):
     def aggregate_logging_outputs(self, logging_outputs, criterion):
         """[deprecated] Aggregate logging outputs from data parallel training."""
         utils.deprecation_warning(
-            "The aggregate_logging_outputs API is deprecated. "
-            "Please use the reduce_metrics API instead."
+            "The aggregate_logging_outputs API is deprecated. " "Please use the reduce_metrics API instead."
         )
         with metrics.aggregate() as agg:
             self.reduce_metrics(logging_outputs, criterion)
@@ -546,26 +518,20 @@ class FairseqTask(object):
                 "Tasks should implement the reduce_metrics API. "
                 "Falling back to deprecated aggregate_logging_outputs API."
             )
-            agg_logging_outputs = self.aggregate_logging_outputs(
-                logging_outputs, criterion
-            )
+            agg_logging_outputs = self.aggregate_logging_outputs(logging_outputs, criterion)
             for k, v in agg_logging_outputs.items():
                 metrics.log_scalar(k, v)
             return
 
         if not any("ntokens" in log for log in logging_outputs):
-            warnings.warn(
-                "ntokens not found in Criterion logging outputs, cannot log wpb or wps"
-            )
+            warnings.warn("ntokens not found in Criterion logging outputs, cannot log wpb or wps")
         else:
             ntokens = sum(log.get("ntokens", 0) for log in logging_outputs)
             metrics.log_scalar("wpb", ntokens, priority=180, round=1)
             metrics.log_speed("wps", ntokens, priority=90, round=1)
 
         if not any("nsentences" in log for log in logging_outputs):
-            warnings.warn(
-                "nsentences not found in Criterion logging outputs, cannot log bsz"
-            )
+            warnings.warn("nsentences not found in Criterion logging outputs, cannot log bsz")
         else:
             nsentences = sum(log.get("nsentences", 0) for log in logging_outputs)
             metrics.log_scalar("bsz", nsentences, priority=190, round=1)
@@ -607,10 +573,7 @@ class FairseqTask(object):
 
     def get_interactive_tokens_and_lengths(self, lines, encode_fn):
         tokens = [
-            self.source_dictionary.encode_line(
-                encode_fn(src_str), add_if_not_exist=False
-            ).long()
-            for src_str in lines
+            self.source_dictionary.encode_line(encode_fn(src_str), add_if_not_exist=False).long() for src_str in lines
         ]
         lengths = [t.numel() for t in tokens]
         return tokens, lengths
