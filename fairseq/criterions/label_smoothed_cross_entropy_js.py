@@ -2,6 +2,7 @@ import math
 from dataclasses import dataclass, field
 
 import torch
+import logging
 from fairseq import metrics, utils
 from fairseq.criterions import FairseqCriterion, register_criterion
 from fairseq.dataclass import FairseqDataclass
@@ -12,12 +13,18 @@ from fairseq.criterions.label_smoothed_cross_entropy import (
     LabelSmoothedCrossEntropyCriterion,
 )
 
+logger = logging.getLogger(__name__)
+
 
 @dataclass
 class LabelSmoothedCrossEntropyCriterionJSConfig(LabelSmoothedCrossEntropyCriterionConfig):
     js_alpha: int = field(
         default=1,
         metadata={"help": "alpha hyperparameter for JS loss for CipherDAug"},
+    )
+    js_warmup: int = field(
+        default=1,
+        metadata={"help": "WarmUp model with regular x-ent for this many updates before computing JS loss"},
     )
 
 
@@ -51,9 +58,13 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
         ignore_prefix_size=0,
         report_accuracy=False,
         js_alpha=0,
+        js_warmup=1,
     ):
         super().__init__(task, sentence_avg, label_smoothing, ignore_prefix_size, report_accuracy)
         self.js_alpha = js_alpha
+        self.js_warmup = js_warmup
+        logger.info("Alpha for JS Loss set to {} .".format(js_alpha))
+        logger.info("JS Loss will start after {} updates.".format(js_warmup))
 
     def compute_kl_loss(self, model, net_output, prime_net_output, pad_mask=None, reduce=True):
         # mean ouptut probs for the 2 forward passes
@@ -80,9 +91,13 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
         loss = (p_loss + q_loss) / 2
         return loss
 
-    def forward(self, model, sample, reduce=True):
+    def forward(self, model, sample, reduce=True, num_updates=None):
 
-        if "prime" not in sample:
+        # if num_updates is not None:
+        #     if num_updates < self.js_warmup:
+        #         pass
+
+        if ("prime" not in sample) or (num_updates is not None and num_updates < self.js_warmup):
             return super().forward(model, sample, reduce=reduce)
 
         sample_input = sample["net_input"]
