@@ -86,13 +86,13 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
             return super().forward(model, sample, reduce=reduce)
 
         sample_input = sample["net_input"]
-        prime_sample_input = sample["prime"]["net_input"]
+        prime_sample = sample["prime"]["net_input"]
 
-        # prime_sample = {
-        #     "src_tokens": prime_sample_input["src_tokens"],
-        #     "src_lengths": prime_sample_input["src_lengths"],
-        #     "prev_output_tokens": sample_input["prev_output_tokens"],
-        # }
+        prime_sample_input = {
+            "src_tokens": prime_sample["src_tokens"],
+            "src_lengths": prime_sample["src_lengths"],
+            "prev_output_tokens": sample_input["prev_output_tokens"],
+        }
 
         # original outputs
         net_output = model(**sample_input)
