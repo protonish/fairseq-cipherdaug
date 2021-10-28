@@ -102,7 +102,7 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
         # prime outputs
         prime_net_output = model(**prime_sample_input)
         prime_lprobs = model.get_normalized_probs(prime_net_output, log_probs=True)
-        prime_lprobs = lprobs.view(-1, lprobs.size(-1))
+        prime_lprobs = prime_lprobs.view(-1, prime_lprobs.size(-1))
 
         # # mean ouptut probs for the 2 forward passes
         # mean_net_output = (net_output[0] + prime_net_output[0]) / 2
