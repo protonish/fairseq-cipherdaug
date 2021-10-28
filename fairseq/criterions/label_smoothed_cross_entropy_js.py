@@ -104,10 +104,6 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
         prime_lprobs = model.get_normalized_probs(prime_net_output, log_probs=True)
         prime_lprobs = lprobs.view(-1, lprobs.size(-1))
 
-        import ipdb
-
-        ipdb.set_trace()
-
         # # mean ouptut probs for the 2 forward passes
         # mean_net_output = (net_output[0] + prime_net_output[0]) / 2
         # mean_lprobs = model.get_normalized_probs(net_output, log_probs=False)
@@ -133,9 +129,11 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
             ignore_index=self.padding_idx,
             reduce=reduce,
         )
+        import ipdb
 
-        js_loss = self.compute_kl_loss(model, net_output, prime_net_output, pad_mask=pad_mask)
-
+        ipdb.set_trace()
+        # js_loss = self.compute_kl_loss(model, net_output, prime_net_output, pad_mask=pad_mask)
+        js_loss = 0
         loss = og_loss + prime_loss + self.js_alpha * js_loss
 
         ntokens = sample["ntokens"]
