@@ -85,8 +85,8 @@ class MultilingualDatasetManagerWithEval(object):
         self.word_dropout = args.word_dropout
         self.lang_tok_style_ = args.lang_tok_style
         # prime dataset
-        self.prime_src = "de"
-        self.prime_tgt = "en"
+        self.prime_src = args.prime_src  # "de"
+        self.prime_tgt = args.prime_tgt  # "en"
         self.prime_src_dataset = None
 
     @classmethod
@@ -278,6 +278,19 @@ class MultilingualDatasetManagerWithEval(object):
             type=int,
             help="virtual data size of the whole joint dataset to speed"
             "up data loading and have specific dynamic sampling strategy interval",
+        )
+        # add prime lang pair
+        parser.add_argument(
+            "--prime-src",
+            help="prime source language for cipher JS loss",
+            default=None,
+            type=str,
+        )
+        parser.add_argument(
+            "--prime-tgt",
+            help="prime target language for cipher JS loss",
+            default=None,
+            type=str,
         )
 
     @classmethod
@@ -614,8 +627,8 @@ class MultilingualDatasetManagerWithEval(object):
             tgt_dataset = tgt_dataset_transform_func(tgt_dataset)
 
             # load primary language pair (de-en)
-            prime_src = "de"
-            prime_tgt = "en"
+            prime_src = self.prime_src
+            prime_tgt = self.prime_tgt
             if split in ["train"] and self.prime_src is not None:
                 if self.prime_src_dataset is None:
                     prime_src_dataset, prime_tgt_dataset, prime_align_dataset = self.load_lang_dataset(
@@ -636,9 +649,6 @@ class MultilingualDatasetManagerWithEval(object):
                     prime_src_dataset = src_dataset_transform_func(prime_src_dataset)
                     # prime_tgt_dataset = tgt_dataset_transform_func(prime_tgt_dataset)
                     self.prime_src_dataset = prime_src_dataset
-            # else:
-            #     prime_src_dataset = None
-            #     prime_tgt_dataset = None
 
             if langpairs_sharing_datasets is not None:
                 langpairs_sharing_datasets[(data_path, split, norm_direction, src)] = src_dataset

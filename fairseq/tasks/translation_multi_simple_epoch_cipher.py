@@ -21,6 +21,8 @@ class TranslationMultiSimpleEpochCipherTask(TranslationMultiSimpleEpochEvalTask)
 
     def train_step(self, sample, model, criterion, optimizer, update_num, ignore_grad=False):
         """
+        Overriding from base class to support sending in *num_updates* to criterion
+
         Do forward and backward, and return the loss as computed by *criterion*
         for the given *model* and *sample*.
 
@@ -50,12 +52,3 @@ class TranslationMultiSimpleEpochCipherTask(TranslationMultiSimpleEpochEvalTask)
         with torch.autograd.profiler.record_function("backward"):
             optimizer.backward(loss)
         return loss, sample_size, logging_output
-
-    # def train_step(self, sample, model, criterion, optimizer, update_num, ignore_grad=False):
-    #     model.train()
-    #     model.set_num_updates(update_num)
-    #     with torch.autograd.profiler.record_function("forward"):
-    #         loss, sample_size, logging_output = criterion.forward_reg(
-    #             model, sample, optimizer, self.criterion_reg_alpha, ignore_grad
-    #         )
-    #         return loss, sample_size, logging_output

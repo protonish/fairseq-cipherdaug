@@ -93,10 +93,6 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
 
     def forward(self, model, sample, reduce=True, num_updates=None):
 
-        # if num_updates is not None:
-        #     if num_updates < self.js_warmup:
-        #         pass
-
         if ("prime" not in sample) or (num_updates is not None and num_updates < self.js_warmup):
             return super().forward(model, sample, reduce=reduce)
 
@@ -144,9 +140,7 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
             ignore_index=self.padding_idx,
             reduce=reduce,
         )
-        # import ipdb
 
-        # ipdb.set_trace()
         js_loss = self.compute_kl_loss(model, net_output, prime_net_output, pad_mask=pad_mask)
         # js_loss = torch.zeros(1).to(og_loss.device)
         loss = og_loss + prime_loss + self.js_alpha * js_loss
@@ -167,7 +161,6 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
         }
         return loss, sample_size, logging_output
 
-    # from contrastive --> change it
     @classmethod
     def reduce_metrics(cls, logging_outputs) -> None:
         super().reduce_metrics(logging_outputs)

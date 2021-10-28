@@ -101,8 +101,10 @@ def collate(
     if switcher is not None and switchout_tau is not None and switchout_tau > 0.0:
         if word_dropout:
             src_tokens = switcher.word_dropout(src_tokens, switchout_tau)
+            prime_src_tokens = switcher.word_dropout(prime_src_tokens, switchout_tau)
         else:
             src_tokens = switcher.switchout(src_tokens, switchout_tau)
+            prime_src_tokens = switcher.switchout(prime_src_tokens, switchout_tau)
 
     prev_output_tokens = None
     target = None
@@ -113,9 +115,6 @@ def collate(
             pad_to_length=pad_to_length["target"] if pad_to_length is not None else None,
         )
         target = target.index_select(0, sort_order)
-        # apply switchout to target here
-        # if switcher is not None and raml_tau is not None and raml_tau > 0.0:
-        #     pass
 
         tgt_lengths = torch.LongTensor([s["target"].ne(pad_idx).long().sum() for s in samples]).index_select(
             0, sort_order
@@ -173,6 +172,7 @@ def collate(
 
     if prev_output_tokens is not None:
         batch["net_input"]["prev_output_tokens"] = prev_output_tokens
+        batch["prime"]["net_input"]["prev_output_tokens"] = prev_output_tokens
 
     if samples[0].get("alignment", None) is not None:
         raise NotImplementedError
