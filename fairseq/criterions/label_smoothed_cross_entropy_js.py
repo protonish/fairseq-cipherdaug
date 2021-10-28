@@ -58,7 +58,7 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
     def compute_kl_loss(self, model, net_output, prime_net_output, pad_mask=None, reduce=True):
         # mean ouptut probs for the 2 forward passes
         mean_net_output = (net_output[0] + prime_net_output[0]) / 2
-        mean_probs = model.get_normalized_probs(mean_net_output, log_probs=False)
+        mean_probs = model.get_normalized_probs((mean_net_output,), log_probs=False)
 
         lprobs = model.get_normalized_probs(net_output, log_probs=True)
         prime_lprobs = model.get_normalized_probs(prime_net_output, log_probs=True)
@@ -132,8 +132,8 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
         # import ipdb
 
         # ipdb.set_trace()
-        # js_loss = self.compute_kl_loss(model, net_output, prime_net_output, pad_mask=pad_mask)
-        js_loss = torch.zeros(1).to(og_loss.device)
+        js_loss = self.compute_kl_loss(model, net_output, prime_net_output, pad_mask=pad_mask)
+        # js_loss = torch.zeros(1).to(og_loss.device)
         loss = og_loss + prime_loss + self.js_alpha * js_loss
 
         ntokens = sample["ntokens"]
