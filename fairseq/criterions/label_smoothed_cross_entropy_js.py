@@ -58,7 +58,7 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
     def compute_kl_loss(self, model, net_output, prime_net_output, pad_mask=None, reduce=True):
         # mean ouptut probs for the 2 forward passes
         mean_net_output = (net_output[0] + prime_net_output[0]) / 2
-        mean_probs = model.get_normalized_probs(net_output, log_probs=False)
+        mean_probs = model.get_normalized_probs(mean_net_output, log_probs=False)
 
         lprobs = model.get_normalized_probs(net_output, log_probs=True)
         prime_lprobs = model.get_normalized_probs(prime_net_output, log_probs=True)
@@ -101,7 +101,7 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
 
         # prime outputs
         prime_net_output = model(**prime_sample_input)
-        prime_lprobs = model.get_normalized_probs(net_output, log_probs=True)
+        prime_lprobs = model.get_normalized_probs(prime_net_output, log_probs=True)
         prime_lprobs = lprobs.view(-1, lprobs.size(-1))
 
         # # mean ouptut probs for the 2 forward passes
@@ -155,18 +155,22 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
     def reduce_metrics(cls, logging_outputs) -> None:
         super().reduce_metrics(logging_outputs)
         sample_size = utils.item(sum(log.get("sample_size", 0) for log in logging_outputs))
-        js_loss = utils.item(sum(log.get("js_loss", 0) for log in logging_outputs))
-        metrics.log_scalar(
-            "js_loss",
-            js_loss / sample_size,
-            sample_size,
-            round=3,
-        )
         ntokens = utils.item(sum(log.get("ntokens", 0) for log in logging_outputs))
-        prime_nll_loss = utils.item(sum(log.get("prime_nll_loss", 0) for log in logging_outputs))
-        metrics.log_scalar(
-            "prime_nll_loss",
-            prime_nll_loss / ntokens / math.log(2),
-            ntokens,
-            round=3,
-        )
+
+        # don't log for valid
+        if sample_size == 2 * ntokens:
+            js_loss = utils.item(sum(log.get("js_loss", 0) for log in logging_outputs))
+            metrics.log_scalar(
+                "js_loss",
+                js_loss / sample_size,
+                sample_size,
+                round=3,
+            )
+
+            prime_nll_loss = utils.item(sum(log.get("prime_nll_loss", 0) for log in logging_outputs))
+            metrics.log_scalar(
+                "prime_nll_loss",
+                prime_nll_loss / ntokens / math.log(2),
+                ntokens,
+                round=3,
+            )
