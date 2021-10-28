@@ -133,7 +133,7 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
 
         # ipdb.set_trace()
         # js_loss = self.compute_kl_loss(model, net_output, prime_net_output, pad_mask=pad_mask)
-        js_loss = 0
+        js_loss = torch.zeros(1)
         loss = og_loss + prime_loss + self.js_alpha * js_loss
 
         ntokens = sample["ntokens"]
