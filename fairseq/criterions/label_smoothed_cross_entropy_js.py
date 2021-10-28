@@ -15,7 +15,7 @@ from fairseq.criterions.label_smoothed_cross_entropy import (
 
 @dataclass
 class LabelSmoothedCrossEntropyCriterionJSConfig(LabelSmoothedCrossEntropyCriterionConfig):
-    js_aplha: int = field(
+    js_alpha: int = field(
         default=1,
         metadata={"help": "alpha hyperparameter for JS loss for CipherDAug"},
     )
