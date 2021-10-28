@@ -143,6 +143,7 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
             "loss": utils.item(loss.data) if reduce else loss.data,
             "nll_loss": utils.item(og_nll_loss.data) if reduce else og_nll_loss.data,
             "js_loss": utils.item(js_loss.data) if reduce else js_loss.data,
+            "prime_nll_loss": utils.item(prime_nll_loss.data) if reduce else prime_nll_loss.data,
             "ntokens": ntokens,
             "nsentences": nsentences,
             "sample_size": sample_size,
@@ -150,14 +151,22 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
         return loss, sample_size, logging_output
 
     # from contrastive --> change it
-    # @classmethod
-    # def reduce_metrics(cls, logging_outputs) -> None:
-    #     super().reduce_metrics(logging_outputs)
-    #     nsentences = utils.item(sum(log.get("nsentences", 0) for log in logging_outputs))
-    #     contrastive_loss = utils.item(sum(log.get("contrastive_loss", 0) for log in logging_outputs))
-    #     metrics.log_scalar(
-    #         "contrastive_loss",
-    #         contrastive_loss / nsentences / math.log(2),
-    #         nsentences,
-    #         round=3,
-    #     )
+    @classmethod
+    def reduce_metrics(cls, logging_outputs) -> None:
+        super().reduce_metrics(logging_outputs)
+        sample_size = utils.item(sum(log.get("sample_size", 0) for log in logging_outputs))
+        js_loss = utils.item(sum(log.get("js_loss", 0) for log in logging_outputs))
+        metrics.log_scalar(
+            "js_loss",
+            js_loss / sample_size,
+            sample_size,
+            round=3,
+        )
+        ntokens = utils.item(sum(log.get("ntokens", 0) for log in logging_outputs))
+        prime_nll_loss = utils.item(sum(log.get("prime_nll_loss", 0) for log in logging_outputs))
+        metrics.log_scalar(
+            "prime_nll_loss",
+            prime_nll_loss / ntokens / math.log(2),
+            ntokens,
+            round=3,
+        )
