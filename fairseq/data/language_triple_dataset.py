@@ -101,10 +101,10 @@ def collate(
     if switcher is not None and switchout_tau is not None and switchout_tau > 0.0:
         if word_dropout:
             src_tokens = switcher.word_dropout(src_tokens, switchout_tau)
-            prime_src_tokens = switcher.word_dropout(prime_src_tokens, switchout_tau)
+            # prime_src_tokens = switcher.word_dropout(prime_src_tokens, switchout_tau)
         else:
             src_tokens = switcher.switchout(src_tokens, switchout_tau)
-            prime_src_tokens = switcher.switchout(prime_src_tokens, switchout_tau)
+            # prime_src_tokens = switcher.switchout(prime_src_tokens, switchout_tau)
 
     prev_output_tokens = None
     target = None
