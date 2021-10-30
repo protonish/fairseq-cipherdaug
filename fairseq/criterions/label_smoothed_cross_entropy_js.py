@@ -68,17 +68,24 @@ class LabelSmoothedCrossEntropyJSCriterion(LabelSmoothedCrossEntropyCriterion):
 
     def compute_kl_loss(self, model, net_output, prime_net_output, pad_mask=None, reduce=True):
         # mean ouptut probs for the 2 forward passes
-        mean_net_output = (net_output[0] + prime_net_output[0]) / 2
-        mean_probs = model.get_normalized_probs((mean_net_output,), log_probs=False)
+        # mean_net_output = (net_output[0] + prime_net_output[0]) / 2
+        # mean_probs = model.get_normalized_probs((mean_net_output,), log_probs=False)
 
         lprobs = model.get_normalized_probs(net_output, log_probs=True)
         prime_lprobs = model.get_normalized_probs(prime_net_output, log_probs=True)
 
+        probs = model.get_normalized_probs(net_output, log_probs=False)
+        prime_probs = model.get_normalized_probs(prime_net_output, log_probs=False)
+
         # p, q = torch.split(net_prob, net_prob.size(0) // 2, dim=0)
         # p_tec, q_tec = torch.split(net_prob_tec, net_prob_tec.size(0) // 2, dim=0)
 
-        p_loss = torch.nn.functional.kl_div(lprobs, mean_probs, reduction="none")
-        q_loss = torch.nn.functional.kl_div(prime_lprobs, mean_probs, reduction="none")
+        # og
+        # p_loss = torch.nn.functional.kl_div(lprobs, mean_probs, reduction="none")
+        # q_loss = torch.nn.functional.kl_div(prime_lprobs, mean_probs, reduction="none")
+
+        p_loss = torch.nn.functional.kl_div(lprobs, prime_probs, reduction="none")
+        q_loss = torch.nn.functional.kl_div(prime_lprobs, probs, reduction="none")
 
         if pad_mask is not None:
             p_loss.masked_fill_(pad_mask, 0.0)
