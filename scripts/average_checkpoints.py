@@ -93,7 +93,10 @@ def last_n_checkpoints(paths, n, update_based, upper_bound=None):
 
 
 def listify_paths(paths):
-    paths = [p.strip() for p in paths.split(",")]
+    assert len(paths) == 1
+    pathstr = paths[0]
+
+    paths = [p.strip() for p in pathstr.split(",")]
     return paths
 
 
