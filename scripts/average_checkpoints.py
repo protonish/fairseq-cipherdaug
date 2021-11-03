@@ -33,9 +33,7 @@ def average_checkpoints(inputs):
         with PathManager.open(fpath, "rb") as f:
             state = torch.load(
                 f,
-                map_location=(
-                    lambda s, _: torch.serialization.default_restore_location(s, "cpu")
-                ),
+                map_location=(lambda s, _: torch.serialization.default_restore_location(s, "cpu")),
             )
         # Copies over the settings from the first checkpoint
         if new_state is None:
@@ -90,16 +88,18 @@ def last_n_checkpoints(paths, n, update_based, upper_bound=None):
             if upper_bound is None or sort_key <= upper_bound:
                 entries.append((sort_key, m.group(0)))
     if len(entries) < n:
-        raise Exception(
-            "Found {} checkpoint files but need at least {}", len(entries), n
-        )
+        raise Exception("Found {} checkpoint files but need at least {}", len(entries), n)
     return [os.path.join(path, x[1]) for x in sorted(entries, reverse=True)[:n]]
+
+
+def listify_paths(paths):
+    paths = [p.strip() for p in paths.split(",")]
+    return paths
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Tool to average the params of input checkpoints to "
-        "produce a new checkpoint",
+        description="Tool to average the params of input checkpoints to " "produce a new checkpoint",
     )
     # fmt: off
     parser.add_argument('--inputs', required=True, nargs='+',
@@ -132,8 +132,7 @@ def main():
         num = args.num_epoch_checkpoints
 
     assert args.checkpoint_upper_bound is None or (
-        args.num_epoch_checkpoints is not None
-        or args.num_update_checkpoints is not None
+        args.num_epoch_checkpoints is not None or args.num_update_checkpoints is not None
     ), "--checkpoint-upper-bound requires --num-epoch-checkpoints or --num-update-checkpoints"
     assert (
         args.num_epoch_checkpoints is None or args.num_update_checkpoints is None
@@ -147,6 +146,9 @@ def main():
             upper_bound=args.checkpoint_upper_bound,
         )
         print("averaging checkpoints: ", args.inputs)
+
+    else:
+        args.inputs = listify_paths(args.inputs)
 
     new_state = average_checkpoints(args.inputs)
     with PathManager.open(args.output, "wb") as f:
