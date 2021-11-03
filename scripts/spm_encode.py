@@ -16,15 +16,9 @@ import sentencepiece as spm
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--model", required=True, help="sentencepiece model to use for encoding"
-    )
-    parser.add_argument(
-        "--inputs", nargs="+", default=["-"], help="input files to filter/encode"
-    )
-    parser.add_argument(
-        "--outputs", nargs="+", default=["-"], help="path to save encoded outputs"
-    )
+    parser.add_argument("--model", required=True, help="sentencepiece model to use for encoding")
+    parser.add_argument("--inputs", nargs="+", default=["-"], help="input files to filter/encode")
+    parser.add_argument("--outputs", nargs="+", default=["-"], help="path to save encoded outputs")
     parser.add_argument("--output_format", choices=["piece", "id"], default="piece")
     parser.add_argument(
         "--min-len",
@@ -38,19 +32,44 @@ def main():
         metavar="N",
         help="filter sentence pairs with more than N tokens",
     )
+    parser.add_argument(
+        "--bpedrop-prob",
+        type=float,
+        default=0.0,
+        help="bpe dropout alpha; usually 0.1 does the trick",
+    )
+    parser.add_argument(
+        "--nbest-size",
+        type=int,
+        default=-1,
+        metavar="N",
+        help="nbest-size is the number of highest-ranked groups of tokens to sample from at each time where -1 means all of the possibilities",
+    )
+
     args = parser.parse_args()
 
-    assert len(args.inputs) == len(
-        args.outputs
-    ), "number of input and output paths should match"
+    assert len(args.inputs) == len(args.outputs), "number of input and output paths should match"
 
     sp = spm.SentencePieceProcessor()
     sp.Load(args.model)
 
     if args.output_format == "piece":
 
-        def encode(l):
-            return sp.EncodeAsPieces(l)
+        if args.bpedrop_prob > 0.0:
+            print(
+                "applying bpe-dropout with alpha: {} and nbest-size: {}".format(args.bpedrop_prob, args.nbest_size),
+                file=sys.stderr,
+            )
+
+            def encode(l):
+                return sp.encode(
+                    l, out_type=str, enable_sampling=True, alpha=args.bpedrop_prob, nbest_size=args.nbest_size
+                )
+
+        else:
+
+            def encode(l):
+                return sp.EncodeAsPieces(l)
 
     elif args.output_format == "id":
 
@@ -74,15 +93,11 @@ def main():
 
     with contextlib.ExitStack() as stack:
         inputs = [
-            stack.enter_context(open(input, "r", encoding="utf-8"))
-            if input != "-"
-            else sys.stdin
+            stack.enter_context(open(input, "r", encoding="utf-8")) if input != "-" else sys.stdin
             for input in args.inputs
         ]
         outputs = [
-            stack.enter_context(open(output, "w", encoding="utf-8"))
-            if output != "-"
-            else sys.stdout
+            stack.enter_context(open(output, "w", encoding="utf-8")) if output != "-" else sys.stdout
             for output in args.outputs
         ]
 
