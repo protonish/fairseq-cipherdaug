@@ -50,17 +50,17 @@ pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cud
 These are the main changes to Fairseq
 
 * tasks - supports [switchout](fairseq/data/switchout.py) family
-** [multilingual translation with evaluation](fairseq/tasks/translation_multi_simple_epoch_eval.py)
-** [multilingual translation with cipherdaug](fairseq/tasks/translation_multi_simple_epoch_cipher.py) extends the task above :arrow_up:
+  * [multilingual translation with evaluation](fairseq/tasks/translation_multi_simple_epoch_eval.py)
+  * [multilingual translation with cipherdaug](fairseq/tasks/translation_multi_simple_epoch_cipher.py) extends the task above :arrow_up:
 
 * data - the tasks depend on these
-** [language triple dataset](fairseq/data/language_triple_dataset.py) -- very much like `language pair dataset` for the classic translation task, but supports multisource [source1 + source2]:arrow_right:target
-** improved general purpose [multilingual data manager](fairseq/data/multilingual/multilingual_data_manager_w_eval.py) that supports evaluation and language pair/triple datasets necessary for multisource
+  * [language triple dataset](fairseq/data/language_triple_dataset.py) -- very much like `language pair dataset` for the classic translation task, but supports multisource [source1 + source2]:arrow_right:target
+  * improved general purpose [multilingual data manager](fairseq/data/multilingual/multilingual_data_manager_w_eval.py) that supports evaluation and language pair/triple datasets necessary for multisource
 
 * criterions - loss functions
-** [symmetric KL loss](fairseq/criterions/label_smoothed_cross_entropy_js.py) can be easily changed to jensen-shannon divergence as well
+  * [symmetric KL loss](fairseq/criterions/label_smoothed_cross_entropy_js.py) can be easily changed to jensen-shannon divergence as well
 
-There might be a few tiny modifications here and there that are not listed here but can be easily traced through a code walkthrough
+There might be a few tiny modifications here and there that are not listed here but can be easily traced through a code walkthrough.
 
 # Join the fairseq community
 
